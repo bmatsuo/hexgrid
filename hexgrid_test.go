@@ -24,7 +24,7 @@ type imageDesc struct {
 }
 var (
     idesc = imageDesc{800,800,32}
-    hfield = NewHexGrid(33, 80)
+    hfield = NewGrid(33, 80)
     hexLabelFontSize float64 = 24
     hexLabelOffset = Point{-63, -10}
     hexCornerLabelFontSize float64 = 12
@@ -42,7 +42,7 @@ func pointInList(p Point, points []Point) bool {
     return found
 }
 
-func hexAsString(h *HexGrid, i, j int, T *testing.T) string {
+func hexAsString(h *Grid, i, j int, T *testing.T) string {
     var (
         sbuff = new([6]string)
         hex = h.GetHex(i,j)
@@ -57,7 +57,7 @@ func hexAsString(h *HexGrid, i, j int, T *testing.T) string {
     return strings.Join(sbuff[:], ", ")
 }
 
-func TestHexGridMissingPoints(T *testing.T) {
+func TestGridMissingPoints(T *testing.T) {
     var numPointsMissing = 0
     for i, hexSlice := range hfield.hexes {
         for j, hex := range hexSlice {
@@ -72,7 +72,7 @@ func TestHexGridMissingPoints(T *testing.T) {
     T.Logf("%d missing points", numPointsMissing)
 }
 
-func TestHexGridDuplicatedPoints(T *testing.T) {
+func TestGridDuplicatedPoints(T *testing.T) {
     var numPointsDuplicated = 0
     for t, p := range hfield.p {
         if pointInList(p, hfield.p[:t]) {
@@ -89,7 +89,7 @@ func TestHexGridDuplicatedPoints(T *testing.T) {
     T.Logf("%d duplicate points", numPointsDuplicated)
 }
 
-func TestHexGridNumPoints(T *testing.T) {
+func TestGridNumPoints(T *testing.T) {
     if len(hfield.p) != cap(hfield.p) {
         T.Errorf("Allocation performed %d %d", len(hfield.p), cap(hfield.p))
     } else {
@@ -97,7 +97,7 @@ func TestHexGridNumPoints(T *testing.T) {
     }
 }
 
-func TestHexGridNumVertices(T *testing.T) {
+func TestGridNumVertices(T *testing.T) {
     if len(hfield.v) != cap(hfield.v) {
         T.Errorf("Allocation performed %d %d", len(hfield.v), cap(hfield.v))
     } else {
@@ -105,7 +105,7 @@ func TestHexGridNumVertices(T *testing.T) {
     }
 }
 
-func TestHexGridNumEdges(T *testing.T) {
+func TestGridNumEdges(T *testing.T) {
     if len(hfield.e) != cap(hfield.e) {
         T.Errorf("Allocation performed %d %d", len(hfield.e), cap(hfield.e))
     } else {
