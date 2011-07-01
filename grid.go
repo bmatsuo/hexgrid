@@ -305,9 +305,9 @@ func (h *Grid) indexOffset() int {
 func (h *Grid) RowMin() int { return -h.indexOffset() }
 //  Maximum value of the row coordinate v.
 func (h *Grid) RowMax() int { return h.indexOffset() }
-//  Minimum value of the row coordinate u.
+//  Minimum value of the column coordinate u.
 func (h *Grid) ColMin() int { return -h.indexOffset() }
-//  Maximum value of the row coordinate u.
+//  Maximum value of the column coordinate u.
 func (h *Grid) ColMax() int { return h.indexOffset() }
 
 
@@ -320,7 +320,6 @@ func (h *Grid) hexIndex(u, v int) (int, int) {
     var offset = h.indexOffset()
     return u+offset, v+offset
 }
-
 
 /* Internal bounds checking method. */
 func (h *Grid) indexWithinBounds(i,j int) bool {
