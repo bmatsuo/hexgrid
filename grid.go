@@ -77,7 +77,7 @@ func (h *Grid) genTiles() {
         for j := 0; j < h.n; j++ {
             var (
                 u, v   = h.hexCoords(i, j)
-                center = h.tileCenter(u, v)
+                center = h.TileCenter(u, v)
             )
             h.tiles[i][j] = Tile{Coords: Coords{u, v}, Pos: center, Value: 0}
         }
@@ -352,7 +352,7 @@ func (h *Grid) GetHex(u, v int) *HexPoints {
         *newh = *(h.hexes[i][j])
         return newh
     }
-    return NewHex(h.tileCenter(u, v), h.radius)
+    return NewHex(h.TileCenter(u, v), h.radius)
 }
 
 //  Get a pointer to the kth corner point of the hex tile at (u,v).
@@ -481,7 +481,7 @@ func (h *Grid) verticalOffset(u int) float64 {
     return 0
 }
 
-func (h *Grid) tileCenter(u, v int) Point {
+func (h *Grid) TileCenter(u, v int) Point {
     var (
         centerX = float64(u) * h.horizontalSpacing()
         centerY = float64(v) * h.verticalSpacing()
