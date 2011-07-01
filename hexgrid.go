@@ -43,8 +43,6 @@ type HexTile struct {
 //  part of the boundary of a HexTile. A HexEdge can be 'Between' only
 //  one tile if its tile is on the edge of the grid.
 type HexEdge struct {
-    //Between []HexCoords
-    Ends    [2]*HexVertex
     Value   interface{}
 }
 //  A HexVertex represents the corner a HexTile. A HexVertex can be shared
@@ -53,8 +51,6 @@ type HexEdge struct {
 //  its tiles are on the edge of the grid. It will be the endpoint of two
 //  edges only it belongs to one tile (and is on the edge of the grid).
 type HexVertex struct {
-    //Between  [3]HexCoords
-    //Indices  [3]int
     Pos     Point
     Value   interface{}
 }
@@ -74,8 +70,8 @@ type HexGrid struct {
 }
 
 func (h *HexGrid) genTiles() {
-    h.tiles = make([][]HexTile, h.n)
     // Generate all tiles.
+    h.tiles = make([][]HexTile, h.n)
     for i := 0 ; i < h.n ; i++ {
         h.tiles[i] = make([]HexTile, h.n)
         for j := 0 ; j < h.n ; j++ {
@@ -88,15 +84,16 @@ func (h *HexGrid) genTiles() {
     }
 }
 func (h *HexGrid) genVertices() {
+    // Make space for vertices/pointers.
     h.v = make([]HexVertex, 0, 2*int(math.Pow(float64(h.n),2) + 2*float64(h.n)))
     h.vertices = make([][][]*HexVertex, h.n)
-    // Generate all tiles.
     for i := 0 ; i < h.n ; i++ {
         h.vertices[i] = make([][]*HexVertex, h.n)
         for j := 0 ; j < h.n ; j++ {
             h.vertices[i][j] = make([]*HexVertex, 6)
         }
     }
+    // Generate vertices
     for i := 0 ; i < h.n ; i++ {
         for j := 0 ; j < h.n ; j++ {
             var (
@@ -127,8 +124,8 @@ func (h *HexGrid) genVertices() {
     }
 }
 func (h *HexGrid) genEdges() {
-    // TODO: Figure out exactly how many edges there are.
-    h.e = make([]HexEdge, 0, 2*int(math.Pow(float64(h.n),2) + 2*float64(h.n)))
+    // Make space for edges/pointers.
+    h.e = make([]HexEdge, 0, 3*int(math.Pow(float64(h.n),2)) + 4*h.n - 1)
     h.edges = make([][][][]*HexEdge, h.n)
     for i := 0 ; i < h.n ; i++ {
         h.edges[i] = make([][][]*HexEdge, h.n)
@@ -139,40 +136,26 @@ func (h *HexGrid) genEdges() {
             }
         }
     }
+    // Generate all edges.
     for i := 0 ; i < h.n ; i++ {
-        for j := 0 ; j < h.n ; j++ {
+        for j := 0 ; j < h.n ; j++ { // BEGIN (u,v) TILE ANALYSIS
             var (
                 u, v = h.hexCoords(i, j)
-                //hex = h.GetHex(u, v)
             )
             for k := 0 ; k < 6 ; k++ {
-                for ell := 0 ; ell < 6 ; ell++ {
+                for ell := 0 ; ell < 6 ; ell++ { // BEGIN (k,ell) EDGE ANALYSIS
+                    // Ensure an edge between k and ell exists.
                     var (
                         hexTmp = &HexPoints{}
                         edgeDir = hexTmp.EdgeDirection(k, ell)
                     )
                     if edgeDir != NilDirection &&  h.edges[i][j][k][ell] == nil {
-                        var (
-                            end1 = h.vertices[i][j][k]
-                            end2 = h.vertices[i][j][ell]
-                        )
-                        h.e = append(h.e, HexEdge{
-                                //Between:nil,
-                                Ends:[2]*HexVertex{end1, end2},
-                                Value:0})
+                        // Create the edge, compute the other incident tile.
+                        h.e = append(h.e, HexEdge{Value:0})
                         var (
                             edgePtr = &(h.e[len(h.e)-1])
-                            //identK = h.GetVerticesIdentical(u, v, k)
-                            //identEll = h.GetVerticesIdentical(u, v, ell)
-                            //between = make([]HexCoords, 0, 2)
                             adjEdgeIndices = hexTmp.EdgeIndices(edgeDir.Inverse())
                         )
-                        if edgeDir == NilDirection {
-                            panic("nildirection")
-                        }
-                        if edgeDir.Inverse() == NilDirection {
-                            panic("nilinverse")
-                        }
                         if adjEdgeIndices == nil {
                             panic("niladjindices")
                         }
@@ -187,6 +170,7 @@ func (h *HexGrid) genEdges() {
                         if adjCoordsSlice == nil {
                             panic("niladjcoords")
                         }
+                        // Store the edge pointer is its various configurations.
                         var (
                             adjCoords = adjCoordsSlice[0]
                             adjU = adjCoords[0]
@@ -199,32 +183,10 @@ func (h *HexGrid) genEdges() {
                         }
                         h.edges[i][j][k][ell] = edgePtr
                         h.edges[i][j][ell][k] = edgePtr
-                        /*
-                        for _, kPrime := range identK {
-                            var (
-                                ku = kPrime[0]
-                                kv = kPrime[1]
-                                kk = kPrime[2]
-                                ki, kj = h.hexIndex(u,v)
-                            )
-                            for _, ellPrime := range identEll {
-                                var (
-                                    ellu    = ellPrime[0]
-                                    ellv    = ellPrime[1]
-                                    ellell  = ellPrime[2]
-                                )
-                                if ku == ellu && kv == ellv {
-                                    //between = append(between, HexCoords{ku, kv})
-                                    h.edges[ki][kj][kk][ellell] = edgePtr
-                                }
-                            }
-                        }
-                        */
-                        //edgePtr.Between = between
                     }
-                }
+                }   // END (k,ell) EDGE ANALYSIS
             }
-        }
+        }   // END (u,v) TILE ANALYSIS
     }
 }
 func (h *HexGrid) genHexagons() {
