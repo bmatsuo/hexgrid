@@ -9,6 +9,8 @@ include $(GOROOT)/src/Make.inc
 
 TARG=hexgrid
 GOFILES=\
-	hexgrid.go\
+		point2d.go\
+		hexagon.go\
+		hexgrid.go\
 
 include $(GOROOT)/src/Make.pkg

@@ -1,0 +1,9 @@
+*.8
+*.6
+*.5
+8.out
+6.out
+5.out
+_obj
+_test
+_testmain.go
