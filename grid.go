@@ -3,7 +3,7 @@ package hexgrid
 *  File: hexgrid.go
 *  Author: Bryan Matsuo [bmatsuo@soe.ucsc.edu] 
 *  Created: Tue Jun 28 03:40:52 PDT 2011
-*/
+ */
 import (
     "fmt"
     "math"
@@ -12,38 +12,38 @@ import (
 
 var (
     hexHighVertexIncidenceOffset = [][][]int{
-        [][]int{ []int{-1,  0, 2}, []int{ 0, -1, 4} },
-        [][]int{ []int{ 0, -1, 3}, []int{ 1,  0, 5} },
-        [][]int{ []int{ 1,  0, 4}, []int{ 1,  1, 0} },
-        [][]int{ []int{ 1,  1, 5}, []int{ 0,  1, 1} },
-        [][]int{ []int{ 0,  1, 0}, []int{-1,  1, 2} },
-        [][]int{ []int{-1,  1, 2}, []int{-1,  0, 3} } }
+        {{-1, 0, 2}, {0, -1, 4}},
+        {{0, -1, 3}, {1, 0, 5}},
+        {{1, 0, 4}, {1, 1, 0}},
+        {{1, 1, 5}, {0, 1, 1}},
+        {{0, 1, 0}, {-1, 1, 2}},
+        {{-1, 1, 2}, {-1, 0, 3}}}
     hexLowVertexIncidenceOffset = [][][]int{
-        [][]int{ []int{-1, -1, 2}, []int{ 0, -1, 4} },
-        [][]int{ []int{ 0, -1, 3}, []int{ 1, -1, 5} },
-        [][]int{ []int{ 1, -1, 4}, []int{ 1,  0, 0} },
-        [][]int{ []int{ 1,  0, 5}, []int{ 0,  1, 1} },
-        [][]int{ []int{ 0,  1, 0}, []int{-1,  0, 2} },
-        [][]int{ []int{-1,  0, 2}, []int{-1, -1, 3} } }
+        {{-1, -1, 2}, {0, -1, 4}},
+        {{0, -1, 3}, {1, -1, 5}},
+        {{1, -1, 4}, {1, 0, 0}},
+        {{1, 0, 5}, {0, 1, 1}},
+        {{0, 1, 0}, {-1, 0, 2}},
+        {{-1, 0, 2}, {-1, -1, 3}}}
 )
 
 //  Discrete hex coordinates consist of a horizontal U axis and a vertical
 //  V axis. Each axis has range (-inf,inf) in theory. In practice, Grid
 //  objects limit the accessible hex tiles.
 type Coords struct {
-    U, V    int
+    U, V int
 }
 //  For each coordinate in a Grid there is one unique HexTile.
 type Tile struct {
-    Coords  Coords
-    Pos     Point
-    Value   interface{}
+    Coords Coords
+    Pos    Point
+    Value  interface{}
 }
 //  A HexEdge represents an edge between two HexVertex objects. It is
 //  part of the boundary of a HexTile. A HexEdge can be 'Between' only
 //  one tile if its tile is on the edge of the grid.
 type Edge struct {
-    Value   interface{}
+    Value interface{}
 }
 //  A HexVertex represents the corner a HexTile. A HexVertex can be shared
 //  by at most 3 HexTiles and can be the junction of between 2 and three
@@ -51,70 +51,70 @@ type Edge struct {
 //  its tiles are on the edge of the grid. It will be the endpoint of two
 //  edges only it belongs to one tile (and is on the edge of the grid).
 type Vertex struct {
-    Pos     Point
-    Value   interface{}
+    Pos   Point
+    Value interface{}
 }
 
 //  A grid of hexagons in a discrete coordinate system (u,v) where u
 //  indexes the column of the grid, and v the row.
 type Grid struct {
-    radius      float64
-    n           int
-    p           []Point
-    v           []Vertex
-    e           []Edge
-    hexes       [][]*HexPoints
-    tiles       [][]Tile
-    vertices    [][][]*Vertex
-    edges       [][][][]*Edge
+    radius   float64
+    n        int
+    p        []Point
+    v        []Vertex
+    e        []Edge
+    hexes    [][]*HexPoints
+    tiles    [][]Tile
+    vertices [][][]*Vertex
+    edges    [][][][]*Edge
 }
 
 func (h *Grid) genTiles() {
     // Generate all tiles.
     h.tiles = make([][]Tile, h.n)
-    for i := 0 ; i < h.n ; i++ {
+    for i := 0; i < h.n; i++ {
         h.tiles[i] = make([]Tile, h.n)
-        for j := 0 ; j < h.n ; j++ {
+        for j := 0; j < h.n; j++ {
             var (
-                u, v = h.hexCoords(i, j)
+                u, v   = h.hexCoords(i, j)
                 center = h.tileCenter(u, v)
             )
-            h.tiles[i][j] = Tile{Coords:Coords{u,v}, Pos:center, Value:0}
+            h.tiles[i][j] = Tile{Coords: Coords{u, v}, Pos: center, Value: 0}
         }
     }
 }
 func (h *Grid) genVertices() {
     // Make space for vertices/pointers.
-    h.v = make([]Vertex, 0, 2*int(math.Pow(float64(h.n),2) + 2*float64(h.n)))
+    h.v = make([]Vertex, 0, 2*int(math.Pow(float64(h.n), 2)+2*float64(h.n)))
     h.vertices = make([][][]*Vertex, h.n)
-    for i := 0 ; i < h.n ; i++ {
+    for i := 0; i < h.n; i++ {
         h.vertices[i] = make([][]*Vertex, h.n)
-        for j := 0 ; j < h.n ; j++ {
+        for j := 0; j < h.n; j++ {
             h.vertices[i][j] = make([]*Vertex, 6)
         }
     }
     // Generate vertices
-    for i := 0 ; i < h.n ; i++ {
-        for j := 0 ; j < h.n ; j++ {
+    for i := 0; i < h.n; i++ {
+        for j := 0; j < h.n; j++ {
             var (
                 u, v = h.hexCoords(i, j)
-                hex = h.GetHex(u, v)
+                hex  = h.GetHex(u, v)
             )
-            for k := 0 ; k < 6 ; k++ {
+            for k := 0; k < 6; k++ {
                 if h.vertices[i][j][k] == nil {
                     var identVertices = h.GetVerticesIdentical(u, v, k)
                     if identVertices == nil {
                         panic("outofbounds")
                     }
-                    h.v = append(h.v, Vertex{Pos:hex[k], Value:0})
+                    h.v = append(h.v, Vertex{Pos: hex[k], Value: 0})
                     for _, ident := range identVertices {
                         var (
-                            uIdent = ident[0]
-                            vIdent = ident[1]
-                            kIdent = ident[2]
-                            iIdent,jIdent = h.hexIndex(uIdent, vIdent)
+                            uIdent         = ident[0]
+                            vIdent         = ident[1]
+                            kIdent         = ident[2]
+                            iIdent, jIdent = h.hexIndex(uIdent, vIdent)
                         )
-                        if h.WithinBounds(uIdent, vIdent){
+                        if h.WithinBounds(uIdent, vIdent) {
                             h.vertices[iIdent][jIdent][kIdent] = &(h.v[len(h.v)-1])
                         }
                     }
@@ -125,42 +125,42 @@ func (h *Grid) genVertices() {
 }
 func (h *Grid) genEdges() {
     // Make space for edges/pointers.
-    h.e = make([]Edge, 0, 3*int(math.Pow(float64(h.n),2)) + 4*h.n - 1)
+    h.e = make([]Edge, 0, 3*int(math.Pow(float64(h.n), 2))+4*h.n-1)
     h.edges = make([][][][]*Edge, h.n)
-    for i := 0 ; i < h.n ; i++ {
+    for i := 0; i < h.n; i++ {
         h.edges[i] = make([][][]*Edge, h.n)
-        for j := 0 ; j < h.n ; j++ {
+        for j := 0; j < h.n; j++ {
             h.edges[i][j] = make([][]*Edge, 6)
-            for k := 0 ; k < 6 ; k++ {
+            for k := 0; k < 6; k++ {
                 h.edges[i][j][k] = make([]*Edge, 6)
             }
         }
     }
     // Generate all edges.
-    for i := 0 ; i < h.n ; i++ {
-        for j := 0 ; j < h.n ; j++ { // BEGIN (u,v) TILE ANALYSIS
+    for i := 0; i < h.n; i++ {
+        for j := 0; j < h.n; j++ { // BEGIN (u,v) TILE ANALYSIS
             var (
                 u, v = h.hexCoords(i, j)
             )
-            for k := 0 ; k < 6 ; k++ {
-                for ell := 0 ; ell < 6 ; ell++ { // BEGIN (k,ell) EDGE ANALYSIS
+            for k := 0; k < 6; k++ {
+                for ell := 0; ell < 6; ell++ { // BEGIN (k,ell) EDGE ANALYSIS
                     // Ensure an edge between k and ell exists.
                     var (
-                        hexTmp = &HexPoints{}
+                        hexTmp  = &HexPoints{}
                         edgeDir = hexTmp.EdgeDirection(k, ell)
                     )
-                    if edgeDir != NilDirection &&  h.edges[i][j][k][ell] == nil {
+                    if edgeDir != NilDirection && h.edges[i][j][k][ell] == nil {
                         // Create the edge, compute the other incident tile.
-                        h.e = append(h.e, Edge{Value:0})
+                        h.e = append(h.e, Edge{Value: 0})
                         var (
-                            edgePtr = &(h.e[len(h.e)-1])
+                            edgePtr        = &(h.e[len(h.e)-1])
                             adjEdgeIndices = hexTmp.EdgeIndices(edgeDir.Inverse())
                         )
                         if adjEdgeIndices == nil {
                             panic("niladjindices")
                         }
                         var (
-                            adjK = adjEdgeIndices[0]
+                            adjK   = adjEdgeIndices[0]
                             adjEll = adjEdgeIndices[1]
                         )
                         if edgeDir == NilDirection {
@@ -172,9 +172,9 @@ func (h *Grid) genEdges() {
                         }
                         // Store the edge pointer is its various configurations.
                         var (
-                            adjCoords = adjCoordsSlice[0]
-                            adjU = adjCoords[0]
-                            adjV = adjCoords[1]
+                            adjCoords  = adjCoordsSlice[0]
+                            adjU       = adjCoords[0]
+                            adjV       = adjCoords[1]
                             adjI, adjJ = h.hexIndex(adjU, adjV)
                         )
                         if h.WithinBounds(adjU, adjV) {
@@ -190,31 +190,31 @@ func (h *Grid) genEdges() {
     }
 }
 func (h *Grid) genHexagons() {
-    h.p = make([]Point, 0, 2*int(math.Pow(float64(h.n),2) + 2*float64(h.n)))
+    h.p = make([]Point, 0, 2*int(math.Pow(float64(h.n), 2)+2*float64(h.n)))
     h.hexes = make([][]*HexPoints, h.n)
     var indexOffset = h.indexOffset()
 
     // Generate all hexagons.
-    for i := 0 ; i < h.n ; i++ {
+    for i := 0; i < h.n; i++ {
         h.hexes[i] = make([]*HexPoints, h.n)
-        for j := 0 ; j < h.n ; j++ {
+        for j := 0; j < h.n; j++ {
             var (
                 u, v = h.hexCoords(i, j)
             )
             h.hexes[i][j] = h.GetHex(u, v)
             if h.hexes[i][j] == nil {
-                panic(fmt.Sprintf("OutOfBounds(%d,%d)",i,j))
+                panic(fmt.Sprintf("OutOfBounds(%d,%d)", i, j))
             }
         }
     }
 
     // Collect all points, sharing common points belonging to adjacent hexagons.
-    for i := 0 ; i < h.n ; i++ {
-        for j := 0 ; j < h.n ; j++ {
+    for i := 0; i < h.n; i++ {
+        for j := 0; j < h.n; j++ {
             var (
-                toAdd = [6]bool{true,true,true,true,true,true}
-                u = i-indexOffset
-                hex = h.hexes[i][j]
+                toAdd = [6]bool{true, true, true, true, true, true}
+                u     = i - indexOffset
+                hex   = h.hexes[i][j]
             )
             var iHigh = h.columnIsHigh(u)
             // Account for the points in the hex tile above i,j
@@ -282,7 +282,7 @@ func NewGrid(n int, r float64) *Grid {
     h.genHexagons()
     h.genTiles()
     h.genVertices()
-    h.genEdges()    // Must come after genVertices.
+    h.genEdges() // Must come after genVertices.
     return h
 }
 
@@ -296,10 +296,10 @@ func (h *Grid) NumPoints() int {
 }
 //  Number of hex tiles in the field (n^2).
 func (h *Grid) NumTiles() int {
-    return h.n*h.n
+    return h.n * h.n
 }
 func (h *Grid) indexOffset() int {
-    return int(math.Floor(float64(h.n)/2))
+    return int(math.Floor(float64(h.n) / 2))
 }
 //  Minimum value of the row coordinate v.
 func (h *Grid) RowMin() int { return -h.indexOffset() }
@@ -314,20 +314,20 @@ func (h *Grid) ColMax() int { return h.indexOffset() }
 /* Some coordinate <-> index internal methods. */
 func (h *Grid) hexCoords(i, j int) (int, int) {
     var offset = h.indexOffset()
-    return i-offset, j-offset
+    return i - offset, j - offset
 }
 func (h *Grid) hexIndex(u, v int) (int, int) {
     var offset = h.indexOffset()
-    return u+offset, v+offset
+    return u + offset, v + offset
 }
 
 /* Internal bounds checking method. */
-func (h *Grid) indexWithinBounds(i,j int) bool {
-    u, v := h.hexCoords(i,j)
+func (h *Grid) indexWithinBounds(i, j int) bool {
+    u, v := h.hexCoords(i, j)
     return h.WithinBounds(u, v)
 }
 //  Returns true if the hex at coordinates (u,v) is in the hex field.
-func (h *Grid) WithinBounds(u,v int) bool {
+func (h *Grid) WithinBounds(u, v int) bool {
     var offset = h.indexOffset()
     if int(math.Fabs(float64(u))) > offset {
         return false
@@ -341,7 +341,7 @@ func (h *Grid) WithinBounds(u,v int) bool {
 //  Generate points for the hexagon at row i, column j.
 //  Returns nil when the position (i,j) is not within the bounds of the board.
 func (h *Grid) GetHex(u, v int) *HexPoints {
-    if !h.WithinBounds(u,v) {
+    if !h.WithinBounds(u, v) {
         return nil
     }
     var (
@@ -352,7 +352,7 @@ func (h *Grid) GetHex(u, v int) *HexPoints {
         *newh = *(h.hexes[i][j])
         return newh
     }
-    return NewHex(h.tileCenter(u,v), h.radius)
+    return NewHex(h.tileCenter(u, v), h.radius)
 }
 
 //  Get a pointer to the kth corner point of the hex tile at (u,v).
@@ -395,11 +395,11 @@ func (h *Grid) GetVerticesIdentical(u, v, k int) [][]int {
     }
     for _, offset := range adjOffsets {
         var (
-            du = offset[0]
-            dv = offset[1]
-            kAdj = offset[2]
-            uNew = u+du
-            vNew = v+dv
+            du         = offset[0]
+            dv         = offset[1]
+            kAdj       = offset[2]
+            uNew       = u + du
+            vNew       = v + dv
             shouldCopy = h.WithinBounds(uNew, vNew)
         )
         if !shouldCopy {
@@ -413,17 +413,17 @@ func (h *Grid) GetVerticesIdentical(u, v, k int) [][]int {
 }
 
 //  Get the index of the vertex clockwise of vertex k.
-func (h *Grid)GetVertexAdjacentClockwise(k int) int {
-    return (k + 5)%6
+func (h *Grid) GetVertexAdjacentClockwise(k int) int {
+    return (k + 5) % 6
 }
 //  Get the index of the vertex counter-clockwise of vertex k.
-func (h *Grid)GetVertexAdjacentCounterClockwise(k int) int {
-    return (k + 1)%6
+func (h *Grid) GetVertexAdjacentCounterClockwise(k int) int {
+    return (k + 1) % 6
 }
 
 //  Get a list of unique vertices adjacent to (u,v,k).
 //  See also, VerticesAreIdentical.
-func (h *Grid)GetVerticesAdjacent(u, v, k int) [][]int {
+func (h *Grid) GetVerticesAdjacent(u, v, k int) [][]int {
     var identVerts = h.GetVerticesIdentical(u, v, k)
     if identVerts == nil {
         return nil
@@ -439,11 +439,11 @@ func (h *Grid)GetVerticesAdjacent(u, v, k int) [][]int {
 //  Returns nil when (u,v) is not within the bounds of h.
 //  Otherwise, a slice of *HexPoints is returned w/ hex tile (u,v) at index 0.
 func (h *Grid) GetHexIncident(u, v, k int) []*HexPoints {
-    var hex = h.GetHex(u,v)
+    var hex = h.GetHex(u, v)
     if hex == nil {
         return nil
     }
-    var adjC  = h.GetVerticesIdentical(u, v, k)
+    var adjC = h.GetVerticesIdentical(u, v, k)
     var adj = make([]*HexPoints, 0, len(adjC))
     for _, coords := range adjC {
         var (
@@ -461,22 +461,22 @@ func (h *Grid) GetHexIncident(u, v, k int) []*HexPoints {
 /* Internal methods for computing hexagon positions. */
 func (h *Grid) columnIsHigh(u int) bool {
     var (
-        offset = uint(h.indexOffset())
-        i = uint(u+int(offset))
-        iOdd = i%2
-        sideIsHigh = offset%2
+        offset     = uint(h.indexOffset())
+        i          = uint(u + int(offset))
+        iOdd       = i % 2
+        sideIsHigh = offset % 2
     )
     return iOdd^sideIsHigh == 1
 }
 func (h *Grid) horizontalSpacing() float64 {
-    return 2*h.radius*math.Cos(hexTriangleAngle)
+    return 2 * h.radius * math.Cos(hexTriangleAngle)
 }
 func (h *Grid) verticalSpacing() float64 {
-    return 2*h.radius
+    return 2 * h.radius
 }
 func (h *Grid) verticalOffset(u int) float64 {
     if h.columnIsHigh(u) {
-        return 2*h.radius*math.Sin(hexTriangleAngle)
+        return 2 * h.radius * math.Sin(hexTriangleAngle)
     }
     return 0
 }
@@ -533,11 +533,11 @@ func (h *Grid) VertexIndex(dir HexDirection) int {
 //  Return a slice of hexagons adjacent to the hex tile at coordinates (u, v).
 //  Only hex tiles in the Grid are returned.
 //  If (u,v) is not in the Grid, a nil slice is returned.
-func (h *Grid) GetHexAdjacent(u,v int, dir HexDirection) []*HexPoints {
+func (h *Grid) GetHexAdjacent(u, v int, dir HexDirection) []*HexPoints {
     if !h.WithinBounds(u, v) {
         return nil
     }
-    var adjC = h.GetHexAdjacentCoords(u,v,dir)
+    var adjC = h.GetHexAdjacentCoords(u, v, dir)
     if adjC == nil {
         panic("niladjacency")
     }
@@ -547,10 +547,10 @@ func (h *Grid) GetHexAdjacent(u,v int, dir HexDirection) []*HexPoints {
             uPrime = coords[0]
             vPrime = coords[1]
         )
-        if !h.WithinBounds(uPrime,vPrime) {
+        if !h.WithinBounds(uPrime, vPrime) {
             continue
         }
-        adj = append(adj, h.GetHex(uPrime,vPrime))
+        adj = append(adj, h.GetHex(uPrime, vPrime))
     }
     return adj
 }
@@ -562,70 +562,70 @@ func (h *Grid) GetHexAdjacent(u,v int, dir HexDirection) []*HexPoints {
 //  If NilDirection is suppied, then coordinates for all adjacent hexagons
 //  are returned in the order N, NE, SE, S, SW, NW.
 func (h *Grid) GetHexAdjacentCoords(u, v int, dir HexDirection) [][]int {
-	switch dir {
+    switch dir {
     case N:
-        return [][]int{[]int{u, v+1}}
+        return [][]int{{u, v + 1}}
     case S:
-        return [][]int{[]int{u, v-1}}
+        return [][]int{{u, v - 1}}
     case E:
-        var adjE = make([][]int,2)
+        var adjE = make([][]int, 2)
         if h.columnIsHigh(u) {
-            adjE[0] = []int{u-1, v+1}
-            adjE[1] =  []int{u-1, v}
+            adjE[0] = []int{u - 1, v + 1}
+            adjE[1] = []int{u - 1, v}
         } else {
-            adjE[0] = []int{u-1, v}
-            adjE[1] = []int{u-1, v-1}
+            adjE[0] = []int{u - 1, v}
+            adjE[1] = []int{u - 1, v - 1}
         }
         return adjE
     case W:
-        var adjW = make([][]int,2)
+        var adjW = make([][]int, 2)
         if h.columnIsHigh(u) {
-            adjW[0] = []int{u+1, v+1}
-            adjW[1] =  []int{u+1, v}
+            adjW[0] = []int{u + 1, v + 1}
+            adjW[1] = []int{u + 1, v}
         } else {
-            adjW[0] = []int{u+1, v}
-            adjW[1] = []int{u+1, v-1}
+            adjW[0] = []int{u + 1, v}
+            adjW[1] = []int{u + 1, v - 1}
         }
         return adjW
     case NE:
         if h.columnIsHigh(u) {
-            return [][]int{[]int{u-1, v+1}}
+            return [][]int{{u - 1, v + 1}}
         }
-        return [][]int{[]int{u-1, v}}
+        return [][]int{{u - 1, v}}
     case NW:
         if h.columnIsHigh(u) {
-            return [][]int{[]int{u+1, v+1}}
+            return [][]int{{u + 1, v + 1}}
         }
-        return [][]int{[]int{u+1, v}}
+        return [][]int{{u + 1, v}}
     case SE:
         if h.columnIsHigh(u) {
-            return [][]int{[]int{u-1, v}}
+            return [][]int{{u - 1, v}}
         }
-        return [][]int{[]int{u-1, v-1}}
+        return [][]int{{u - 1, v - 1}}
     case SW:
         if h.columnIsHigh(u) {
-            return [][]int{[]int{u+1, v}}
+            return [][]int{{u + 1, v}}
         }
-        return [][]int{[]int{u+1, v-1}}
+        return [][]int{{u + 1, v - 1}}
     default:
-        var adjAll = make([][]int,6)
+        var adjAll = make([][]int, 6)
         if h.columnIsHigh(u) {
-            adjAll[0] = []int{u, v+1}   // North
-            adjAll[1] = []int{u-1, v+1} // NorthEast
-            adjAll[2] = []int{u-1, v}   // SouthEast
-            adjAll[3] = []int{u, v-1}   // South
-            adjAll[4] = []int{u+1, v}   // SouthWest
-            adjAll[5] = []int{u+1, v+1} // NorthWest
+            adjAll[0] = []int{u, v + 1}     // North
+            adjAll[1] = []int{u - 1, v + 1} // NorthEast
+            adjAll[2] = []int{u - 1, v}     // SouthEast
+            adjAll[3] = []int{u, v - 1}     // South
+            adjAll[4] = []int{u + 1, v}     // SouthWest
+            adjAll[5] = []int{u + 1, v + 1} // NorthWest
         } else {
-            adjAll[0] = []int{u, v+1}
-            adjAll[1] = []int{u-1, v}
-            adjAll[2] = []int{u-1, v-1}
-            adjAll[3] = []int{u, v-1}
-            adjAll[4] = []int{u+1, v-1}
-            adjAll[5] = []int{u+1, v}
+            adjAll[0] = []int{u, v + 1}
+            adjAll[1] = []int{u - 1, v}
+            adjAll[2] = []int{u - 1, v - 1}
+            adjAll[3] = []int{u, v - 1}
+            adjAll[4] = []int{u + 1, v - 1}
+            adjAll[5] = []int{u + 1, v}
         }
         return adjAll
-	}
+    }
     return nil
 }
 

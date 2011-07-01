@@ -3,7 +3,7 @@ package hexgrid
 *  File: point2d.go
 *  Author: Bryan Matsuo [bmatsuo@soe.ucsc.edu] 
 *  Created: Wed Jun 29 01:07:05 PDT 2011
-*/
+ */
 import (
     "math"
     "image"
@@ -20,7 +20,7 @@ type Point struct {
 //  A point at (infinity, infinity). See also, PointIsInf.
 func PointInf() Point {
     var inf = math.Inf(1)
-    return Point{inf,inf}
+    return Point{inf, inf}
 }
 //  Test a point to see if it is infinity. A point is inifinity if either
 //  of its components are infinity (positive or negative).
@@ -34,7 +34,7 @@ func (p Point) ApproxEqual(p2 Point) bool {
     return p.Sub(p2).Norm() < PointApproximationGap
 }
 func (p Point) ImageCoords(rect image.Rectangle) Point {
-    return Point{p.X, float64(rect.Max.Y)-p.Y}
+    return Point{p.X, float64(rect.Max.Y) - p.Y}
 }
 func (p Point) ImagePoint(rect image.Rectangle) image.Point {
     var ip = p.ImageCoords(rect)
@@ -47,25 +47,24 @@ func (p Point) Dot(p2 Point) float64 {
     return p.X*p2.X + p.Y*p2.Y
 }
 func (p Point) Scale(a float64) Point {
-    return Point{a*p.X, a*p.Y}
+    return Point{a * p.X, a * p.Y}
 }
 func (p Point) Sub(p2 Point) Point {
-    return Point{p.X-p2.X, p.Y-p2.Y}
+    return Point{p.X - p2.X, p.Y - p2.Y}
 }
 func (p Point) Add(p2 Point) Point {
-    return Point{p.X+p2.X, p.Y+p2.Y}
+    return Point{p.X + p2.X, p.Y + p2.Y}
 }
 func (p Point) Rot(theta float64) Point {
     return Point{
-            p.X*math.Cos(theta) - p.Y*math.Sin(theta),
-            p.Y*math.Cos(theta) + p.X*math.Sin(theta) }
+        p.X*math.Cos(theta) - p.Y*math.Sin(theta),
+        p.Y*math.Cos(theta) + p.X*math.Sin(theta)}
 }
 func (p Point) RotAround(theta float64, center Point) Point {
     var (
-        mv = p.Sub(center)
-        rot = mv.Rot(theta)
+        mv     = p.Sub(center)
+        rot    = mv.Rot(theta)
         mvBack = rot.Add(center)
     )
     return mvBack
 }
-

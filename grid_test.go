@@ -3,7 +3,7 @@ package hexgrid
 *  File: hexgrid_test.go
 *  Author: Bryan Matsuo [bmatsuo@soe.ucsc.edu] 
 *  Created: Tue Jun 28 17:55:54 PDT 2011
-*/
+ */
 import (
     //"time"
     "fmt"
@@ -22,18 +22,19 @@ import (
 type imageDesc struct {
     W, H, D int
 }
+
 var (
-    idesc = imageDesc{800,800,32}
-    hfield = NewGrid(33, 80)
-    hexLabelFontSize float64 = 24
-    hexLabelOffset = Point{-63, -10}
+    idesc                          = imageDesc{800, 800, 32}
+    hfield                         = NewGrid(33, 80)
+    hexLabelFontSize       float64 = 24
+    hexLabelOffset                 = Point{-63, -10}
     hexCornerLabelFontSize float64 = 12
-    hexCornerLabelOffset = Point{-3,-6}
+    hexCornerLabelOffset           = Point{-3, -6}
 )
 
 func pointInList(p Point, points []Point) bool {
     var found = false
-    for _,p2 := range points {
+    for _, p2 := range points {
         found = p.ApproxEqual(p2)
         if found {
             break
@@ -45,13 +46,13 @@ func pointInList(p Point, points []Point) bool {
 func hexAsString(h *Grid, i, j int, T *testing.T) string {
     var (
         sbuff = new([6]string)
-        hex = h.GetHex(i,j)
+        hex   = h.GetHex(i, j)
     )
     if hex == nil {
         T.Errorf("Nil tile: n: %d i: %d j:%d", h.Size(), i, j)
         return ""
     }
-    for k := 0 ; k < 6 ; k++ {
+    for k := 0; k < 6; k++ {
         sbuff[k] = fmt.Sprintf("[%.02f %.02f]", hex[k].X, hex[k].Y)
     }
     return strings.Join(sbuff[:], ", ")
@@ -63,7 +64,7 @@ func TestGridMissingPoints(T *testing.T) {
         for j, hex := range hexSlice {
             for k, p := range hex[:] {
                 if !pointInList(p, hfield.p) {
-                    T.Errorf("Couldn't find point (%3d,%3d,%3d) %v in point list", i,j,k,p)
+                    T.Errorf("Couldn't find point (%3d,%3d,%3d) %v in point list", i, j, k, p)
                     numPointsMissing++
                 }
             }
