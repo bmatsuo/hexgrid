@@ -54,7 +54,39 @@ func (vc VertexCoords) IsIdentical(other VertexCoords) bool {
 type EdgeCoords struct {
     U, V, K, L int
 }
-func (e EdgeCoords) Ends() (v1, v2 VertexCoords) {
+var(
+    nilEdgeCoords = EdgeCoords{}
+)
+//  The zero value of EdgeCoords, which does not represent a real edge.
+func NilEdgeCoords() EdgeCoords {
+    return nilEdgeCoords
+}
+//  Returns true if and only if e and e2 have exactly the same fields.
+func (e EdgeCoords) Equals(e2 EdgeCoords) bool {
+    return e.U == e2.U && e.V == e2.V && e.K == e2.K && e.L == e2.L
+}
+func (e EdgeCoords) reverse() EdgeCoords {
+    return EdgeCoords{U:e.U, V:e.V, K:e.L, L:e.L}
+}
+//  Returns true if and only if e and e2 reference the same edge.
+func (e EdgeCoords) IsIdentical(e2 EdgeCoords) bool {
+    var (
+        adjc = e.IncidentCoords()
+        adjc2 = e2.IncidentCoords()
+    )
+    if adjc[0].Equals(adjc2[1]) && adjc[1].Equals(adjc[0]) {
+        return true
+    } else if adjc[1].Equals(adjc2[0]) && adjc[0].Equals(adjc[1]) {
+        return true
+    }
+    return false
+}
+//  Test if an edge is NilEdge. Synonymn for e.Equals(NilEdgeCoords())
+func (e EdgeCoords) IsNil() bool {
+    return e.Equals(nilEdgeCoords)
+}
+//  Retrieve the coordinates of e's incident vertices.
+func (e EdgeCoords) Incidents() (v1, v2 VertexCoords) {
     v1 = VertexCoords{e.U,e.V,e.K}
     v2 = VertexCoords{e.U,e.V,e.L}
     return v1, v2
@@ -218,8 +250,13 @@ func (vert VertexCoords) Incidents() []Coords {
     return adj
 }
 
-func (edge EdgeCoords) SharedByEnds() []Coords {
-    vert1, vert2 := edge.Ends()
+//  The Coords of tiles which share edge e. There are exactly two such
+//  Coords for any (real) edge. Returns nil if e is NilEdgeCoords()
+func (e EdgeCoords) IncidentCoords() []Coords {
+    if e.IsNil() {
+        return nil
+    }
+    vert1, vert2 := e.Incidents()
     return vert1.CoordsShared(vert2)
 }
 
@@ -276,6 +313,7 @@ func (coord Coords) EdgeIndicesShared(other Coords) []int {
     if adjDir == NilDirection {
         return nil
     }
+
     return HexEdgeIndices(adjDir)
 }
 
@@ -293,7 +331,7 @@ func (vert VertexCoords) IncidentEdges() []EdgeCoords {
 
 //  This is untested.
 func (vert VertexCoords) AdjacentByEdge(edge EdgeCoords) VertexCoords {
-    v1, v2 := edge.Ends()
+    v1, v2 := edge.Incidents()
     if vert.IsIdentical(v1) {
         return v2
     } else if vert.IsIdentical(v2) {
