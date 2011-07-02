@@ -70,7 +70,7 @@ func (hex *HexPoints) Points() []Point {
     copy(points, hex[:])
     return points
 }
-func (hex *HexPoints) EdgeDirection(k, ell int) HexDirection {
+func HexEdgeDirection(k, ell int) HexDirection {
     if k > ell {
         var tmp = k
         k = ell
@@ -91,7 +91,7 @@ func (hex *HexPoints) EdgeDirection(k, ell int) HexDirection {
     }
     return NilDirection
 }
-func (hex *HexPoints) EdgeIndices(dir HexDirection) []int {
+func HexEdgeIndices(dir HexDirection) []int {
     switch dir {
     case S:
         return []int{0, 1}
@@ -108,8 +108,8 @@ func (hex *HexPoints) EdgeIndices(dir HexDirection) []int {
     }
     return nil
 }
-func (hex *HexPoints) Edge(dir HexDirection) []Point {
-    var edgeIndices = hex.EdgeIndices(dir)
+func (hex *HexPoints) EdgePoints(dir HexDirection) []Point {
+    var edgeIndices = HexEdgeIndices(dir)
     if edgeIndices == nil {
         return nil
     }
