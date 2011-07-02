@@ -24,7 +24,7 @@ func PointInf() Point {
 }
 //  Test a point to see if it is infinity. A point is infinity if either
 //  of its components are infinity (positive or negative).
-func PointIsInf(p Point) bool {
+func (p Point) IsInf() bool {
     if math.IsInf(p.X, 0) || math.IsInf(p.Y, 0) {
         return true
     }
