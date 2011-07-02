@@ -104,6 +104,25 @@ func testAllocation(expected, length, capacity int, T *testing.T, ) {
         T.Logf("Found the expected number %d", expected)
     }
 }
+func TestHexPoints(T *testing.T) {
+    for u := hfield.ColMin() ; u <= hfield.ColMax() ; u++ {
+        for v := hfield.RowMin() ; v <= hfield.RowMax() ; v++ {
+            var hex = hfield.GetHex(u, v)
+            if hex == nil {
+                T.Errorf("Nil *HexPoints encountered at %d %d", u, v)
+                continue
+            }
+            for k := 0 ; k < 6 ; k++ {
+                if pointInList(hex[k], hex[:k]) {
+                    T.Errorf("Duplicate point found, index %d, (u,v)=(%d,%d)", k, u, v)
+                }
+                if pointInList(hex[k], hex[k+1:]) {
+                    T.Errorf("Duplicate point found, index %d, (u,v)=(%d,%d)", k, u, v)
+                }
+            }
+        }
+    }
+}
 
 func TestGridNumTiles(T *testing.T) {
     var (

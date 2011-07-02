@@ -24,7 +24,7 @@ var (
         {{1, -1, 4}, {1, 0, 0}},
         {{1, 0, 5}, {0, 1, 1}},
         {{0, 1, 0}, {-1, 0, 2}},
-        {{-1, 0, 2}, {-1, -1, 3}}}
+        {{-1, 0, 1}, {-1, -1, 3}}}
 )
 
 type Value interface{}
@@ -581,21 +581,22 @@ func (h *Grid) genHexagons() {
             for k := 0 ; k < 6 ; k++ {
                 var idents = VertexCoords{u, v, k}.IdenticalVertices()
                 for _, id := range idents[1:] {
-                    if h.WithinBounds(id.U, id.V) {
-                        var joinVertices = func() {
-                            var (
-                                iPrime, jPrime = h.hexIndex(id.U, id.V)
-                                adjHex = h.hexes[iPrime][jPrime]
-                            )
-                            hex[k] = adjHex[id.K]
-                            toAdd[k] = false
+                    var joinVertices = func() {
+                        var (
+                            adjHex = h.GetHex(id.U, id.V)
+                        )
+                        if adjHex == nil {
+                            return
                         }
-                        if id.V < v {
+                        hex[k] = adjHex[id.K]
+                        //log.Printf("Joined (%d %d %d) and (%d %d %d)", u, v, k, id.U, id.V, id.K)
+                        toAdd[k] = false
+                    }
+                    if id.V < v {
+                        joinVertices()
+                    } else if id.V == v {
+                        if id.U < u {
                             joinVertices()
-                        } else if id.V == v {
-                            if id.U < u {
-                                joinVertices()
-                            }
                         }
                     }
                 }
