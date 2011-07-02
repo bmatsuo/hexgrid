@@ -47,6 +47,46 @@ func (dir HexDirection) Inverse() HexDirection {
     return NilDirection
 }
 
+//  Return the direction of vertex k relative to the center of a hexagon.
+//  Returns NilDirection if k is not in the range [0,5].
+func HexVertexDirection(k int) HexDirection {
+    switch k {
+    case 0:
+        return SW
+    case 1:
+        return SE
+    case 2:
+        return E
+    case 3:
+        return NE
+    case 4:
+        return NW
+    case 5:
+        return W
+    }
+    return NilDirection
+}
+//  Return the vertex k in direction dir from a hex tile's center.
+//  Returns -1 if dir is NilDirection, N, or S.
+func HexVertexIndex(dir HexDirection) int {
+    switch dir {
+    case SW:
+        return 0
+    case SE:
+        return 1
+    case E:
+        return 2
+    case NE:
+        return 3
+    case NW:
+        return 4
+    case W:
+        return 5
+    }
+    return -1
+}
+
+
 const (
     hexTriangleAngle = math.Pi / 6
     hexRotateAngle   = math.Pi / 3

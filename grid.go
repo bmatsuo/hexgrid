@@ -27,32 +27,6 @@ var (
         {{-1, 0, 2}, {-1, -1, 3}}}
 )
 
-//  Discrete hex coordinates consist of a horizontal U axis and a vertical
-//  V axis. Each axis has range (-inf,inf) in theory. In practice, Grid
-//  objects limit the accessible hex tiles.
-type Coords struct {
-    U, V int
-}
-type GridDimensions struct {
-    U, V float64
-}
-//  Vertices in the grid are indexed by hex coordinates paired with a
-//  vertex index K. Vertex indices range from 0 to 5 and begin in the
-//  south-west corner of the vertex. See also, HexDirection.
-type VertexCoords struct {
-    U, V, K int
-}
-//  Edges in the grid are index by hex coordinates along with a pair of
-//  vertex indices K and L.
-type EdgeCoords struct {
-    U, V, K, L int
-}
-func (e EdgeCoords) Ends() (v1, v2 VertexCoords) {
-    v1 = VertexCoords{e.U,e.V,e.K}
-    v2 = VertexCoords{e.U,e.V,e.L}
-    return v1, v2
-}
-
 type Value interface{}
 //  For each coordinate in a Grid there is one unique HexTile.
 type Tile struct {
@@ -167,18 +141,6 @@ func (h *Grid) GetEdges(coords Coords) []*Edge {
     }
     return edges
 }
-//  This method needs testing.
-func (h *Grid) GetEdgesCoordsIncident(vert VertexCoords) []EdgeCoords {
-    var (
-        adjVCs = h.GetVerticesAdjacent(vert)
-        edges = make([]EdgeCoords, len(adjVCs))
-    )
-    for i, other := range adjVCs {
-        edges[i] = h.GetEdgeCoordsSharedByVertices(vert, other)
-    }
-    return edges
-}
-
 //  Returns the width and height of the Grid wrapped in a
 //  GridDimensions object.
 func (h *Grid) Size() GridDimensions {
@@ -278,52 +240,6 @@ func (h *Grid) GetVertexPoint(vert VertexCoords) Point {
     return hex[vert.K]
 }
 
-//  Determine if (u1,v1,k1) and (u2,v2,k2) reference the same point.
-func (h *Grid) VerticesAreIdentical(vert1, vert2 VertexCoords) bool {
-    var identVertices = h.GetVertexCoordsIdentical(vert1)
-    if identVertices == nil {
-        panic("nilident")
-    }
-    for _, ident := range identVertices {
-        if ident.U == vert2.U && ident.V == vert2.V && ident.K == vert2.K {
-            return true
-        }
-    }
-    return false
-}
-
-//  Get coordinates of hex vertices in the field incident to vertex (u,v,k).
-//  Returns a slice of vertex coordinates (slices of 3 ints), the first of
-//  which being []int{u, v, k}. See also, VerticesAreIdentical.
-func (h *Grid) GetVertexCoordsIdentical(vert VertexCoords) []VertexCoords {
-    var adjC = make([]VertexCoords, 1, 3)
-    adjC[0] = vert
-
-    var adjOffsets [][]int
-    if h.columnIsHigh(vert.U) {
-        adjOffsets = hexHighVertexIncidenceOffset[vert.K]
-    } else {
-        adjOffsets = hexLowVertexIncidenceOffset[vert.K]
-    }
-    for _, offset := range adjOffsets {
-        var (
-            du         = offset[0]
-            dv         = offset[1]
-            kAdj       = offset[2]
-            uNew       = vert.U + du
-            vNew       = vert.V + dv
-            shouldCopy = h.WithinBounds(uNew, vNew)
-        )
-        if !shouldCopy {
-            continue
-        }
-        var offsetCp = VertexCoords{uNew, vNew, kAdj}
-        adjC = append(adjC, offsetCp)
-    }
-
-    return adjC
-}
-
 //  Get the index of the vertex clockwise of vertex k.
 func HexVertexIndexClockwise(k int) int {
     return (k + 5) % 6
@@ -332,18 +248,8 @@ func HexVertexIndexClockwise(k int) int {
 func HexVertexIndexCounterClockwise(k int) int {
     return (k + 1) % 6
 }
-//  This is untested.
-func (h *Grid) GetVertexCoordsAdjacentByEdge(vert VertexCoords, edge EdgeCoords) VertexCoords {
-    v1, v2 := edge.Ends()
-    if h.VerticesAreIdentical(vert, v1) {
-        return v2
-    } else if h.VerticesAreIdentical(vert, v2) {
-        return v1
-    }
-    return VertexCoords{}
-}
 func (h *Grid) GetVertexAdjacentByEdge(vert VertexCoords, edge EdgeCoords) *Vertex {
-    var coords = h.GetVertexCoordsAdjacentByEdge(vert, edge)
+    var coords = VertexCoordsAdjacentByEdge(vert, edge)
     return h.GetVertex(coords.U, coords.V, coords.K)
 }
 func (h *Grid) GetVertices(coords Coords) []*Vertex {
@@ -357,20 +263,6 @@ func (h *Grid) GetVertices(coords Coords) []*Vertex {
     return vertices
 }
 
-//  Get a list of unique vertices adjacent to (u,v,k).
-//  See also, VerticesAreIdentical.
-func (h *Grid) GetVerticesAdjacent(vert VertexCoords) []VertexCoords {
-    var identVerts = h.GetVertexCoordsIdentical(vert)
-    if identVerts == nil {
-        return nil
-    }
-    var adjVerts = make([]VertexCoords, len(identVerts))
-    for i, vert := range identVerts {
-        adjVerts[i] = VertexCoords{vert.U, vert.V, HexVertexIndexClockwise(vert.K)}
-    }
-    return adjVerts
-}
-
 //  Get hex tiles incident with the kth corner point of hex at (u,v).
 //  Returns nil when (u,v) is not within the bounds of h.
 //  Otherwise, a slice of *HexPoints is returned w/ hex tile (u,v) at index 0.
@@ -378,7 +270,7 @@ func (h *Grid) GetHexIncident(vert VertexCoords) []*HexPoints {
     if !h.WithinBounds(vert.U, vert.V) {
         return nil
     }
-    var adjC = h.GetCoordsIncident(vert)
+    var adjC = CoordsIncident(vert)
     var adj = make([]*HexPoints, 0, len(adjC))
     for _, coords := range adjC {
         var (
@@ -393,7 +285,7 @@ func (h *Grid) GetHexIncident(vert VertexCoords) []*HexPoints {
     return adj
 }
 func (h *Grid) GetTilesIncident(vert VertexCoords) []*Tile {
-    var adjC = h.GetCoordsIncident(vert)
+    var adjC = CoordsIncident(vert)
     var adj = make([]*Tile, 0, len(adjC))
     for _, coords := range adjC {
         var (
@@ -407,42 +299,9 @@ func (h *Grid) GetTilesIncident(vert VertexCoords) []*Tile {
 
     return adj
 }
-func (h *Grid) GetCoordsIncident(vert VertexCoords) []Coords {
-    var (
-        adjVC = h.GetVertexCoordsIdentical(vert)
-        adj = make([]Coords, 0, len(adjVC))
-    )
-    for _, coords := range adjVC {
-        var (
-            adjCoords = Coords{coords.U, coords.V}
-        )
-        adj = append(adj, adjCoords)
-    }
-
-    return adj
-}
-func (h *Grid) GetCoordsSharedByVertices(vert1, vert2 VertexCoords) []Coords {
-    var (
-        adjC1 = h.GetCoordsIncident(vert1)
-        adjC2 = h.GetCoordsIncident(vert2)
-    )
-    var shared = make([]Coords, 0, 1)
-    for _, c1 := range adjC1 {
-        for _, c2 := range adjC2 {
-            if c1.U == c2.U && c1.V == c2.V {
-                shared = append(shared, c1)
-            }
-        }
-    }
-    return shared
-}
-func (h *Grid) GetCoordsSharedByEdge(edge EdgeCoords) []Coords {
-    vert1, vert2 := edge.Ends()
-    return h.GetCoordsSharedByVertices(vert1, vert2)
-}
 func (h *Grid) GetTilesSharedByCoords(vert1, vert2 VertexCoords) []*Tile {
     var (
-        shared = h.GetCoordsSharedByVertices(vert1, vert2)
+        shared = CoordsSharedByVertices(vert1, vert2)
         tiles = make([]*Tile, 0, len(shared))
     )
     for _, coord := range shared {
@@ -459,15 +318,6 @@ func (h *Grid) GetTilesSharedByCoords(vert1, vert2 VertexCoords) []*Tile {
 }
 
 /* Internal methods for computing hexagon positions. */
-func (h *Grid) columnIsHigh(u int) bool {
-    var (
-        offsetU    = uint(h.horizontalIndexOffset())
-        i          = uint(u + int(offsetU))
-        iOdd       = i % 2
-        sideIsHigh = offsetU % 2
-    )
-    return iOdd^sideIsHigh == 1
-}
 func (h *Grid) horizontalSpacing() float64 {
     return 2 * h.radius * math.Cos(hexTriangleAngle)
 }
@@ -475,7 +325,7 @@ func (h *Grid) verticalSpacing() float64 {
     return 2 * h.radius
 }
 func (h *Grid) verticalOffset(u int) float64 {
-    if h.columnIsHigh(u) {
+    if columnIsHigh(u) {
         return 2 * h.radius * math.Sin(hexTriangleAngle)
     }
     return 0
@@ -490,46 +340,6 @@ func (h *Grid) TileCenter(u, v int) Point {
     return Point{centerX, centerY}
 }
 
-
-//  Return the direction of vertex k relative to the center of a hexagon.
-//  Returns NilDirection if k is not in the range [0,5].
-func (h *Grid) VertexDirection(k int) HexDirection {
-    switch k {
-    case 0:
-        return SW
-    case 1:
-        return SE
-    case 2:
-        return E
-    case 3:
-        return NE
-    case 4:
-        return NW
-    case 5:
-        return W
-    }
-    return NilDirection
-}
-//  Return the vertex k in direction dir from a hex tile's center.
-//  Returns -1 if dir is NilDirection, N, or S.
-func HexVertexIndex(dir HexDirection) int {
-    switch dir {
-    case SW:
-        return 0
-    case SE:
-        return 1
-    case E:
-        return 2
-    case NE:
-        return 3
-    case NW:
-        return 4
-    case W:
-        return 5
-    }
-    return -1
-}
-
 //  Return a slice of hexagons adjacent to the hex tile at coordinates (u, v).
 //  Only hex tiles in the Grid are returned.
 //  If (u,v) is not in the Grid, a nil slice is returned.
@@ -537,7 +347,7 @@ func (h *Grid) GetHexAdjacent(u, v int, dir HexDirection) []*HexPoints {
     if !h.WithinBounds(u, v) {
         return nil
     }
-    var adjC = h.GetCoordsAdjacent(Coords{u, v}, dir)
+    var adjC = CoordsAdjacent(Coords{u, v}, dir)
     if adjC == nil {
         panic("niladjacency")
     }
@@ -555,186 +365,8 @@ func (h *Grid) GetHexAdjacent(u, v int, dir HexDirection) []*HexPoints {
     return adj
 }
 
-//  Return a slice of the coordinates for adjacent hexagons
-//  (not necessarily in the grid).
-//  If E (or W) is supplied then the NE and SE (or NE and SW) coordinates
-//  are returned in that order.
-//  If NilDirection is suppied, then coordinates for all adjacent hexagons
-//  are returned in the order N, NE, SE, S, SW, NW.
-func (h *Grid) GetCoordsAdjacent(coords Coords, dir HexDirection) []Coords {
-    var (
-        u = coords.U
-        v = coords.V
-    )
-    switch dir {
-    case N:
-        return []Coords{Coords{u, v + 1}}
-    case S:
-        return []Coords{Coords{u, v - 1}}
-    case E:
-        var adjE = make([]Coords, 2)
-        if h.columnIsHigh(u) {
-            adjE[0] = Coords{u - 1, v + 1}
-            adjE[1] = Coords{u - 1, v}
-        } else {
-            adjE[0] = Coords{u - 1, v}
-            adjE[1] = Coords{u - 1, v - 1}
-        }
-        return adjE
-    case W:
-        var adjW = make([]Coords, 2)
-        if h.columnIsHigh(u) {
-            adjW[0] = Coords{u + 1, v + 1}
-            adjW[1] = Coords{u + 1, v}
-        } else {
-            adjW[0] = Coords{u + 1, v}
-            adjW[1] = Coords{u + 1, v - 1}
-        }
-        return adjW
-    case NE:
-        if h.columnIsHigh(u) {
-            return []Coords{Coords{u - 1, v + 1}}
-        }
-        return []Coords{Coords{u - 1, v}}
-    case NW:
-        if h.columnIsHigh(u) {
-            return []Coords{Coords{u + 1, v + 1}}
-        }
-        return []Coords{Coords{u + 1, v}}
-    case SE:
-        if h.columnIsHigh(u) {
-            return []Coords{Coords{u - 1, v}}
-        }
-        return []Coords{Coords{u - 1, v - 1}}
-    case SW:
-        if h.columnIsHigh(u) {
-            return []Coords{Coords{u + 1, v}}
-        }
-        return []Coords{Coords{u + 1, v - 1}}
-    default:
-        var adjAll = make([]Coords, 6)
-        if h.columnIsHigh(u) {
-            adjAll[0] = Coords{u, v + 1}     // North
-            adjAll[1] = Coords{u - 1, v + 1} // NorthEast
-            adjAll[2] = Coords{u - 1, v}     // SouthEast
-            adjAll[3] = Coords{u, v - 1}     // South
-            adjAll[4] = Coords{u + 1, v}     // SouthWest
-            adjAll[5] = Coords{u + 1, v + 1} // NorthWest
-        } else {
-            adjAll[0] = Coords{u, v + 1}
-            adjAll[1] = Coords{u - 1, v}
-            adjAll[2] = Coords{u - 1, v - 1}
-            adjAll[3] = Coords{u, v - 1}
-            adjAll[4] = Coords{u + 1, v - 1}
-            adjAll[5] = Coords{u + 1, v}
-        }
-        return adjAll
-    }
-    return nil
-}
-
-//  If hex tiles (u1,v1) and (u2,v2) are adjacent, the direction of (u2,v2)
-//  from (u1,v1) is returned. Otherwise NilDirection is returned.
-func (h *Grid) HexAdjacency(u1, v1, u2, v2 int) HexDirection {
-    var (
-        deltaU = u2 - u1
-        deltaV = v2 - v1
-    )
-    if u1 == u2 {
-        if deltaV == 1 {
-            return N
-        } else if deltaV == -1 {
-            return S
-        }
-        return NilDirection
-    }
-    if deltaU == 1 {
-        if h.columnIsHigh(u1) {
-            if v1 == v2 {
-                return SE
-            }
-            if v2 == v1+1 {
-                return NE
-            }
-        } else {
-            if v2 == v1-1 {
-                return SE
-            }
-            if v1 == v2 {
-                return NE
-            }
-        }
-    } else if deltaU == -1 {
-        if h.columnIsHigh(u1) {
-            if v2 == v1+1 {
-                return NW
-            }
-            if v1 == v2 {
-                return SW
-            }
-        } else {
-            if v1 == v2 {
-                return NW
-            }
-            if v2 == v1-1 {
-                return SW
-            }
-        }
-    }
-    return NilDirection
-}
-
-func (h *Grid) sameTile(u1, v1, u2, v2 int) bool {
-    return u1 == u2 && v1 == v2
-}
-
-func (h *Grid) GetEdgeCoordsSharedByVertices(vert1, vert2 VertexCoords) EdgeCoords {
-    var (
-        u1 = vert1.U
-        v1 = vert1.V
-        k1 = vert1.K
-        u2 = vert2.U
-        v2 = vert2.V
-        k2 = vert2.K
-    )
-    if !h.WithinBounds(vert1.U,vert1.V) || !h.WithinBounds(vert2.U, vert2.V) {
-        return EdgeCoords{}
-    }
-    if h.VerticesAreIdentical(vert1, vert2) {
-        return EdgeCoords{}
-    }
-    if h.sameTile(u1, v1, u2, v2) {
-        return EdgeCoords{u1, v1, k1, k2}
-    }
-    var (
-        identVerts1 = h.GetVertexCoordsIdentical(vert1)
-        identVerts2 = h.GetVertexCoordsIdentical(vert2)
-    )
-    if identVerts1 == nil || identVerts2 == nil {
-        panic("nilident")
-    }
-    for _, ident1 := range identVerts1 {
-        for _, ident2 := range identVerts2 {
-            u1 = ident1.U
-            v1 = ident1.V
-            k1 = ident1.K
-            u2 = ident2.U
-            v2 = ident2.V
-            k2 = ident2.K
-            if h.sameTile(u1, v1, u2, v2) {
-                return EdgeCoords{u1, v1, k1, k2}
-            }
-            var edge = h.GetEdgeIndicesShared(u1, v1, u2, v2)
-            if edge != nil {
-                return EdgeCoords{u1, v1, edge[0], edge[1]}
-            }
-        }
-    }
-    return EdgeCoords{}
-}
-
 func (h *Grid) GetEdgeSharedByVertices(vert1, vert2 VertexCoords) *Edge {
-    var coords = h.GetEdgeCoordsSharedByVertices(vert1, vert2)
+    var coords = EdgeCoordsSharedByVertices(vert1, vert2)
     return h.GetEdge(coords.U, coords.V, coords.K, coords.L)
 }
 
@@ -743,24 +375,12 @@ func (h *Grid) GetEdgeSharedByVertices(vert1, vert2 VertexCoords) *Edge {
 //  (u2,v2). Returns nil if the hex coordinates are not
 //  adjacent.
 func (h *Grid) GetEdgeShared(u1, v1, u2, v2 int) *Edge {
-    var indices = h.GetEdgeIndicesShared(u1, v1, u2, v2)
+    var indices = EdgeIndicesShared(u1, v1, u2, v2)
     if indices == nil {
         return nil
     }
     return h.GetEdge(u1, v1, indices[0], indices[1])
 }
-
-//  Function for determining the vertex indices of an edge in
-//  the hex tile at (u1,v1) that is alse in tile (u2,v2).
-//  Returns nil if the hex coordinates are not adjacent.
-func (h *Grid) GetEdgeIndicesShared(u1, v1, u2, v2 int) []int {
-    var adjDir = h.HexAdjacency(u1, v1, u2, v2)
-    if adjDir == NilDirection {
-        return nil
-    }
-    return HexEdgeIndices(adjDir)
-}
-
 //  Function for determining the actual points determining any shared edge
 //  between hex tiles (u1,v1) and (u2,v2). Returns nil if either
 //  coordinates are outside of the hex field. Returns nil if the hex
@@ -772,7 +392,7 @@ func (h *Grid) GetEdgePointsShared(u1, v1, u2, v2 int) []Point {
     if !h.WithinBounds(u2, v2) {
         return nil
     }
-    var sharedIndices = h.GetEdgeIndicesShared(u1, v1, u2, v2)
+    var sharedIndices = EdgeIndicesShared(u1, v1, u2, v2)
     if sharedIndices == nil {
         return nil
     }
@@ -825,7 +445,7 @@ func (h *Grid) genVertices(defaultValue Value) {
             for k := 0; k < 6; k++ {
                 if h.vertices[i][j][k] == nil {
                     var (
-                        identVertices   = h.GetVertexCoordsIdentical(VertexCoords{u, v, k})
+                        identVertices   = VertexCoordsIdentical(VertexCoords{u, v, k})
                         coords          = VertexCoords{u, v, k}
                         value           Value
                     )
@@ -909,7 +529,7 @@ func (h *Grid) genEdges(defaultValue Value) {
                         if edgeDir == NilDirection {
                             panic("niledgedirection")
                         }
-                        var adjCoordsSlice = h.GetCoordsAdjacent(Coords{u, v}, edgeDir)
+                        var adjCoordsSlice = CoordsAdjacent(Coords{u, v}, edgeDir)
                         if adjCoordsSlice == nil {
                             panic("niladjcoords")
                         }
@@ -935,8 +555,6 @@ func (h *Grid) genEdges(defaultValue Value) {
 func (h *Grid) genHexagons() {
     h.p = make([]Point, 0, h.expectedNumVertices())
     h.hexes = make([][]*HexPoints, h.n)
-    var indexOffsetU = h.horizontalIndexOffset()
-
     // Generate all hexagons.
     for i := 0; i < h.n; i++ {
         h.hexes[i] = make([]*HexPoints, h.m)
@@ -956,41 +574,30 @@ func (h *Grid) genHexagons() {
         for j := 0; j < h.m; j++ {
             var (
                 toAdd = [6]bool{true, true, true, true, true, true}
-                u     = i - indexOffsetU
+                u, v  = h.hexCoords(i,j)
                 hex   = h.hexes[i][j]
             )
-            var iHigh = h.columnIsHigh(u)
-            // Account for the points in the hex tile above i,j
-            if i > 0 {
-                if iHigh {
-                    hex[5] = h.hexes[i-1][j][3]
-                    toAdd[5] = false
-                    hex[0] = h.hexes[i-1][j][2]
-                    toAdd[0] = false
-                } else {
-                    hex[4] = h.hexes[i-1][j][2]
-                    toAdd[4] = false
-                    hex[5] = h.hexes[i-1][j][1]
-                    toAdd[5] = false
-                    if j > 0 {
-                        hex[5] = h.hexes[i-1][j-1][3]
-                        toAdd[5] = false
+            for k := 0 ; k < 6 ; k++ {
+                var idents = VertexCoordsIdentical(VertexCoords{u, v, k})
+                for _, id := range idents[1:] {
+                    if h.WithinBounds(id.U, id.V) {
+                        var joinVertices = func() {
+                            var (
+                                iPrime, jPrime = h.hexIndex(id.U, id.V)
+                                adjHex = h.hexes[iPrime][jPrime]
+                            )
+                            hex[k] = adjHex[id.K]
+                            toAdd[k] = false
+                        }
+                        if id.V < v {
+                            joinVertices()
+                        } else if id.V == v {
+                            if id.U < u {
+                                joinVertices()
+                            }
+                        }
                     }
                 }
-            }
-
-            // Account for points in the hex tile above and to the left of i,j
-            if j > 0 {
-                hex[0] = h.hexes[i][j-1][4]
-                toAdd[0] = false
-                hex[1] = h.hexes[i][j-1][3]
-                toAdd[1] = false
-            }
-
-            // Account for corner cases.
-            if !iHigh && i < h.n-1 && j > 0 {
-                hex[2] = h.hexes[i+1][j-1][4]
-                toAdd[2] = false
             }
 
             // Account for points in the hex tile not already accounted for.
@@ -999,9 +606,6 @@ func (h *Grid) genHexagons() {
                     continue
                 }
                 h.p = append(h.p, hex[k])
-                if h.p == nil {
-                    panic("nil append result")
-                }
             }
         }
     }
