@@ -249,7 +249,7 @@ func HexVertexIndexCounterClockwise(k int) int {
     return (k + 1) % 6
 }
 func (h *Grid) GetVertexAdjacentByEdge(vert VertexCoords, edge EdgeCoords) *Vertex {
-    var coords = VertexCoordsAdjacentByEdge(vert, edge)
+    var coords = vert.AdjacentByEdge(edge)
     return h.GetVertex(coords.U, coords.V, coords.K)
 }
 func (h *Grid) GetVertices(coords Coords) []*Vertex {
@@ -270,7 +270,7 @@ func (h *Grid) GetHexIncident(vert VertexCoords) []*HexPoints {
     if !h.WithinBounds(vert.U, vert.V) {
         return nil
     }
-    var adjC = CoordsIncident(vert)
+    var adjC = vert.IncidentCoords()
     var adj = make([]*HexPoints, 0, len(adjC))
     for _, coords := range adjC {
         var (
@@ -285,7 +285,7 @@ func (h *Grid) GetHexIncident(vert VertexCoords) []*HexPoints {
     return adj
 }
 func (h *Grid) GetTilesIncident(vert VertexCoords) []*Tile {
-    var adjC = CoordsIncident(vert)
+    var adjC = vert.IncidentCoords()
     var adj = make([]*Tile, 0, len(adjC))
     for _, coords := range adjC {
         var (
@@ -301,7 +301,7 @@ func (h *Grid) GetTilesIncident(vert VertexCoords) []*Tile {
 }
 func (h *Grid) GetTilesSharedByCoords(vert1, vert2 VertexCoords) []*Tile {
     var (
-        shared = CoordsSharedByVertices(vert1, vert2)
+        shared = vert1.SharedByVertex(vert2)
         tiles = make([]*Tile, 0, len(shared))
     )
     for _, coord := range shared {
@@ -347,7 +347,7 @@ func (h *Grid) GetHexAdjacent(u, v int, dir HexDirection) []*HexPoints {
     if !h.WithinBounds(u, v) {
         return nil
     }
-    var adjC = CoordsAdjacent(Coords{u, v}, dir)
+    var adjC = Coords{u, v}.AdjacentCoords(dir)
     if adjC == nil {
         panic("niladjacency")
     }
@@ -366,7 +366,7 @@ func (h *Grid) GetHexAdjacent(u, v int, dir HexDirection) []*HexPoints {
 }
 
 func (h *Grid) GetEdgeSharedByVertices(vert1, vert2 VertexCoords) *Edge {
-    var coords = EdgeCoordsSharedByVertices(vert1, vert2)
+    var coords = vert1.EdgeCoordsSharedByVertex(vert2)
     return h.GetEdge(coords.U, coords.V, coords.K, coords.L)
 }
 
@@ -375,7 +375,7 @@ func (h *Grid) GetEdgeSharedByVertices(vert1, vert2 VertexCoords) *Edge {
 //  (u2,v2). Returns nil if the hex coordinates are not
 //  adjacent.
 func (h *Grid) GetEdgeShared(coord1, coord2 Coords) *Edge {
-    var indices = EdgeIndicesShared(coord1, coord2)
+    var indices = coord1.EdgeIndicesShared(coord2)
     if indices == nil {
         return nil
     }
@@ -392,7 +392,7 @@ func (h *Grid) GetEdgePointsShared(coord1, coord2 Coords) []Point {
     if !h.WithinBounds(coord2.U, coord2.V) {
         return nil
     }
-    var sharedIndices = EdgeIndicesShared(coord1, coord2)
+    var sharedIndices = coord1.EdgeIndicesShared(coord2)
     if sharedIndices == nil {
         return nil
     }
@@ -445,8 +445,9 @@ func (h *Grid) genVertices(defaultValue Value) {
             for k := 0; k < 6; k++ {
                 if h.vertices[i][j][k] == nil {
                     var (
-                        identVertices   = VerticesIdentical(VertexCoords{u, v, k})
-                        coords          = VertexCoords{u, v, k}
+                        vert            = VertexCoords{u, v, k}
+                        identVertices   = vert.IdenticalVertices()
+                        coords          = vert
                         value           Value
                     )
                     if identVertices == nil {
@@ -529,7 +530,7 @@ func (h *Grid) genEdges(defaultValue Value) {
                         if edgeDir == NilDirection {
                             panic("niledgedirection")
                         }
-                        var adjCoordsSlice = CoordsAdjacent(Coords{u, v}, edgeDir)
+                        var adjCoordsSlice = Coords{u, v}.AdjacentCoords(edgeDir)
                         if adjCoordsSlice == nil {
                             panic("niladjcoords")
                         }
@@ -578,7 +579,7 @@ func (h *Grid) genHexagons() {
                 hex   = h.hexes[i][j]
             )
             for k := 0 ; k < 6 ; k++ {
-                var idents = VerticesIdentical(VertexCoords{u, v, k})
+                var idents = VertexCoords{u, v, k}.IdenticalVertices()
                 for _, id := range idents[1:] {
                     if h.WithinBounds(id.U, id.V) {
                         var joinVertices = func() {
