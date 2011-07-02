@@ -27,13 +27,15 @@ type GridDimensions struct {
 type VertexCoords struct {
     U, V, K int
 }
+//  Create a Coords object from a VertexCoords object.
 func (vc VertexCoords) Coords() Coords {
     return Coords{vc.U, vc.V}
 }
+//  Returns true if  only if the U, V and K fields of vc and other are equal.
 func (vc VertexCoords) Equals(other VertexCoords) bool {
     return vc.U == other.U && vc.V == other.V && vc.K == other.K
 }
-//  Determine if (u1,v1,k1) and (u2,v2,k2) reference the same point.
+//  Returns true if (u1,v1,k1) and (u2,v2,k2) reference the same vertex.
 func (vc VertexCoords) Identical(other VertexCoords) bool {
     var identVertices = VerticesIdentical(vc)
     if identVertices == nil {
@@ -69,12 +71,12 @@ func sameTile(u1, v1, u2, v2 int) bool {
 
 //  If hex tiles (u1,v1) and (u2,v2) are adjacent, the direction of (u2,v2)
 //  from (u1,v1) is returned. Otherwise NilDirection is returned.
-func HexAdjacency(coord1, coord2 Coords) HexDirection {
+func (c Coords) Adjacency(adj Coords) HexDirection {
     var (
-        deltaU = coord2.U - coord1.U
-        deltaV = coord2.U - coord1.U
+        deltaU = adj.U - c.U
+        deltaV = adj.U - c.U
     )
-    if coord1.U == coord2.U {
+    if c.U == adj.U {
         if deltaV == 1 {
             return N
         } else if deltaV == -1 {
@@ -83,39 +85,44 @@ func HexAdjacency(coord1, coord2 Coords) HexDirection {
         return NilDirection
     }
     if deltaU == 1 {
-        if columnIsHigh(coord1.U) {
-            if coord1.U == coord2.U {
+        if columnIsHigh(c.U) {
+            if c.U == adj.U {
                 return SE
             }
-            if coord2.U == coord1.U+1 {
+            if adj.U == c.U+1 {
                 return NE
             }
         } else {
-            if coord2.V == coord1.V-1 {
+            if adj.V == c.V-1 {
                 return SE
             }
-            if coord1.V == coord2.V {
+            if c.V == adj.V {
                 return NE
             }
         }
     } else if deltaU == -1 {
-        if columnIsHigh(coord1.U) {
-            if coord2.V == coord1.V+1 {
+        if columnIsHigh(c.U) {
+            if adj.V == c.V+1 {
                 return NW
             }
-            if coord1.V == coord2.V {
+            if c.V == adj.V {
                 return SW
             }
         } else {
-            if coord1.V == coord2.V {
+            if c.V == adj.V {
                 return NW
             }
-            if coord2.V == coord1.V-1 {
+            if adj.V == c.V-1 {
                 return SW
             }
         }
     }
     return NilDirection
+}
+
+//  Returns true if and only if c is adjacent to adj
+func (c Coords) Adjacent(adj Coords) bool {
+    return c.Adjacency(adj) != NilDirection
 }
 
 //  Return a slice of the coordinates for adjacent hexagons
@@ -265,7 +272,7 @@ func EdgeCoordsSharedByVertices(vert1, vert2 VertexCoords) EdgeCoords {
 //  the hex tile at (u1,v1) that is alse in tile (u2,v2).
 //  Returns nil if the hex coordinates are not adjacent.
 func EdgeIndicesShared(coord1, coord2 Coords) []int {
-    var adjDir = HexAdjacency(coord1, coord2)
+    var adjDir = coord1.Adjacency(coord2)
     if adjDir == NilDirection {
         return nil
     }
