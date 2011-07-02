@@ -270,7 +270,7 @@ func (h *Grid) GetHexIncident(vert VertexCoords) []*HexPoints {
     if !h.WithinBounds(vert.U, vert.V) {
         return nil
     }
-    var adjC = vert.IncidentCoords()
+    var adjC = vert.Incidents()
     var adj = make([]*HexPoints, 0, len(adjC))
     for _, coords := range adjC {
         var (
@@ -285,7 +285,7 @@ func (h *Grid) GetHexIncident(vert VertexCoords) []*HexPoints {
     return adj
 }
 func (h *Grid) GetTilesIncident(vert VertexCoords) []*Tile {
-    var adjC = vert.IncidentCoords()
+    var adjC = vert.Incidents()
     var adj = make([]*Tile, 0, len(adjC))
     for _, coords := range adjC {
         var (
@@ -366,7 +366,7 @@ func (h *Grid) GetHexAdjacent(u, v int, dir HexDirection) []*HexPoints {
 }
 
 func (h *Grid) GetEdgeSharedByVertices(vert1, vert2 VertexCoords) *Edge {
-    var coords = vert1.EdgeSharedByVertex(vert2)
+    var coords = vert1.EdgeShared(vert2)
     return h.GetEdge(coords.U, coords.V, coords.K, coords.L)
 }
 

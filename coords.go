@@ -203,7 +203,7 @@ func (coords Coords) Adjacents(dir HexDirection) []Coords {
     return nil
 }
 
-func (vert VertexCoords) IncidentCoords() []Coords {
+func (vert VertexCoords) Incidents() []Coords {
     var (
         adjVC = vert.IdenticalVertices()
         adj = make([]Coords, 0, len(adjVC))
@@ -225,8 +225,8 @@ func (edge EdgeCoords) SharedByEnds() []Coords {
 
 func (vert VertexCoords) SharedByVertex(vert2 VertexCoords) []Coords {
     var (
-        adjC1 = vert.IncidentCoords()
-        adjC2 = vert2.IncidentCoords()
+        adjC1 = vert.Incidents()
+        adjC2 = vert2.Incidents()
     )
     var shared = make([]Coords, 0, 1)
     for _, c1 := range adjC1 {
@@ -239,7 +239,7 @@ func (vert VertexCoords) SharedByVertex(vert2 VertexCoords) []Coords {
     return shared
 }
 
-func (vert VertexCoords) EdgeSharedByVertex(vert2 VertexCoords) EdgeCoords {
+func (vert VertexCoords) EdgeShared(vert2 VertexCoords) EdgeCoords {
     if vert.Identical(vert2) {
         return EdgeCoords{}
     }
@@ -286,7 +286,7 @@ func (vert VertexCoords) IncidentEdges() []EdgeCoords {
         edges = make([]EdgeCoords, len(adjVCs))
     )
     for i, other := range adjVCs {
-        edges[i] = vert.EdgeSharedByVertex(other)
+        edges[i] = vert.EdgeShared(other)
     }
     return edges
 }
