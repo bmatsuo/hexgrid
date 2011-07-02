@@ -31,8 +31,8 @@ Or, alternatively, you can clone the repository and install locally.
 General Documentation
 ---------------------
 
-The best way to view the documentation is by running a godoc http
-server.
+The best way to view the documentation (if you installed using goinstall)
+is by running a godoc http server.
 
     godoc -http=:6060
 
