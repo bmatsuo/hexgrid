@@ -1,17 +1,1 @@
-Grid methods of the form Get* which don't actually use the Grid should be replaced by package functions with no "Get" prefix. Then the prefix "Get" refers to fetching an object (Tile, Vertex, or Edge) from the grid.
-
-Methods to be renamed:
-
-    HexVertexDirection(k int)
-    CoordsAdjancency(t1, t2 Coords) [replacing (*Grid) HexAdjacency(...)]
-    CoordsAdjacent(Coords)
-    CoordsIncident(VertexCoords)
-    CoordsSharedByEdge(EdgeCoords)
-    CoordsSharedByVertices(vert1, vert2 VertexCoords)
-    EdgeCoordsSharedByVertices(vert1, vert2 VertexCoords)
-    EdgeIndicesShared(t1, t2 Coords) [or (Coords) EdgeIndicesShared(t2 Coords)]
-    EdgeCoordsIncident(VertexCoords)
-    VertexCoordsAdjacentByEdge(VertexCoords, EdgeCoords)
-    VertexCoordsIdentical(VertexCoords)
-    VertexCoordsIncident(Coords)
-    VerticesAreIdentical(vert1, vert2 VertexCoords)
+Many of the now package functions should be turned into methods of their respective objects.
