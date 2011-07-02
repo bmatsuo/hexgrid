@@ -36,7 +36,7 @@ func (vc VertexCoords) Equals(other VertexCoords) bool {
     return vc.U == other.U && vc.V == other.V && vc.K == other.K
 }
 //  Returns true if (u1,v1,k1) and (u2,v2,k2) reference the same vertex.
-func (vc VertexCoords) Identical(other VertexCoords) bool {
+func (vc VertexCoords) IsIdentical(other VertexCoords) bool {
     var identVertices = vc.IdenticalVertices()
     if identVertices == nil {
         panic("nilident")
@@ -121,7 +121,7 @@ func (c Coords) Adjacency(adj Coords) HexDirection {
 }
 
 //  Returns true if and only if c is adjacent to adj
-func (c Coords) Adjacent(adj Coords) bool {
+func (c Coords) IsAdjacent(adj Coords) bool {
     return c.Adjacency(adj) != NilDirection
 }
 
@@ -240,7 +240,7 @@ func (vert VertexCoords) SharedByVertex(vert2 VertexCoords) []Coords {
 }
 
 func (vert VertexCoords) EdgeShared(vert2 VertexCoords) EdgeCoords {
-    if vert.Identical(vert2) {
+    if vert.IsIdentical(vert2) {
         return EdgeCoords{}
     }
     if vert.Coords().Equals(vert2.Coords()) {
@@ -294,9 +294,9 @@ func (vert VertexCoords) IncidentEdges() []EdgeCoords {
 //  This is untested.
 func (vert VertexCoords) AdjacentByEdge(edge EdgeCoords) VertexCoords {
     v1, v2 := edge.Ends()
-    if vert.Identical(v1) {
+    if vert.IsIdentical(v1) {
         return v2
-    } else if vert.Identical(v2) {
+    } else if vert.IsIdentical(v2) {
         return v1
     }
     return VertexCoords{}
@@ -304,7 +304,7 @@ func (vert VertexCoords) AdjacentByEdge(edge EdgeCoords) VertexCoords {
 
 //  Get coordinates of hex vertices in the field incident to vertex (u,v,k).
 //  Returns a slice of vertex coordinates (slices of 3 ints), the first of
-//  which being []int{u, v, k}. See also, (vc VertexCoords) Identical.
+//  which being []int{u, v, k}. See also, (vc VertexCoords) IsIdentical.
 func (vert VertexCoords) IdenticalVertices() []VertexCoords {
     var adjC = make([]VertexCoords, 1, 3)
     adjC[0] = vert
@@ -334,12 +334,18 @@ func (vert VertexCoords) IdenticalVertices() []VertexCoords {
 //  See also, (VertexCoords) Identical.
 func (vert VertexCoords) Adjacents() []VertexCoords {
     var identVerts = vert.IdenticalVertices()
-    if identVerts == nil {
-        return nil
-    }
     var adjVerts = make([]VertexCoords, len(identVerts))
     for i, vert := range identVerts {
         adjVerts[i] = VertexCoords{vert.U, vert.V, HexVertexIndexClockwise(vert.K)}
     }
     return adjVerts
+}
+
+func (vert VertexCoords) IsAdjacent(other VertexCoords) bool {
+    for _, adj := range vert.Adjacents() {
+        if adj.IsIdentical(other) {
+            return true
+        }
+    }
+    return false
 }
