@@ -90,26 +90,54 @@ func TestGridDuplicatedPoints(T *testing.T) {
     T.Logf("%d duplicate points", numPointsDuplicated)
 }
 
+func testAllocation(expected, length, capacity int, T *testing.T, ) {
+    if length != capacity {
+        T.Errorf("Wasted slice space %d %d", length, capacity)
+    } else {
+        T.Log("No wasted slice space")
+    }
+    if length > expected {
+        T.Errorf("More than expected %d %d", length, expected)
+    } else if length < expected {
+        T.Errorf("Less than expected %d %d", length, expected)
+    } else {
+        T.Logf("Found the expected number %d", expected)
+    }
+}
+
+func TestGridNumTiles(T *testing.T) {
+    var (
+        expected = hfield.expectedNumTiles()
+        s = hfield.t
+        length = len(s)
+        capacity = cap(s)
+    )
+    testAllocation(expected, length, capacity, T)
+}
 func TestGridNumPoints(T *testing.T) {
-    if len(hfield.p) != cap(hfield.p) {
-        T.Errorf("Allocation performed %d %d", len(hfield.p), cap(hfield.p))
-    } else {
-        T.Logf("No wasted slice space (%d points)", len(hfield.p))
-    }
+    var (
+        expected = hfield.expectedNumVertices()
+        s = hfield.p
+        length = len(s)
+        capacity = cap(s)
+    )
+    testAllocation(expected, length, capacity, T)
 }
-
 func TestGridNumVertices(T *testing.T) {
-    if len(hfield.v) != cap(hfield.v) {
-        T.Errorf("Allocation performed %d %d", len(hfield.v), cap(hfield.v))
-    } else {
-        T.Logf("No wasted slice space (%d points)", len(hfield.v))
-    }
+    var (
+        expected = hfield.expectedNumVertices()
+        s = hfield.v
+        length = len(s)
+        capacity = cap(s)
+    )
+    testAllocation(expected, length, capacity, T)
 }
-
 func TestGridNumEdges(T *testing.T) {
-    if len(hfield.e) != cap(hfield.e) {
-        T.Errorf("Allocation performed %d %d", len(hfield.e), cap(hfield.e))
-    } else {
-        T.Logf("No wasted slice space (%d points)", len(hfield.e))
-    }
+    var (
+        expected = hfield.expectedNumEdges()
+        s = hfield.e
+        length = len(s)
+        capacity = cap(s)
+    )
+    testAllocation(expected, length, capacity, T)
 }

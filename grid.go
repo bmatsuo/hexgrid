@@ -99,6 +99,11 @@ type Grid struct {
 
 //  Create an nxm grid of hexagons with radius r. Where n is the number of
 //  columns and m is the number of rows. The integers n and m must be odd.
+//  The *Default arguments dictate the initialized Value field of each Tile,
+//  Vertex and Edge object. If the value of a default is a function taking
+//  the proper arguments and returning a Value object then that function is
+//  called to generate each objects initial value. See also, TileInitializer,
+//  VertexInitializer, and EdgeInitializer.
 func NewGrid(n, m int, r float64, tileDefault, vertexDefault, edgeDefault interface{}) *Grid {
     if n&1 == 0 || m&1 == 0 {
         panic("evensize")
@@ -120,6 +125,7 @@ func NewGrid(n, m int, r float64, tileDefault, vertexDefault, edgeDefault interf
     return h
 }
 
+//  Retrieve a Tile object specified by its coordinates.
 func (h *Grid) GetTile(u, v int) *Tile {
     if !h.WithinBounds(u, v) {
         return nil
@@ -127,6 +133,8 @@ func (h *Grid) GetTile(u, v int) *Tile {
     i, j := h.hexIndex(u, v)
     return h.tiles[i][j]
 }
+
+//  Retrieve a Vertex object specified by its coordinates.
 func (h *Grid) GetVertex(u, v, k int) *Vertex {
     if !h.WithinBounds(u, v) {
         return nil
@@ -137,6 +145,8 @@ func (h *Grid) GetVertex(u, v, k int) *Vertex {
     i, j := h.hexIndex(u, v)
     return h.vertices[i][j][k%6]
 }
+
+//  Retrieve an Edge object specified by its coordinates.
 func (h *Grid) GetEdge(u, v, k, ell int) *Edge {
     if !h.WithinBounds(u, v) {
         return nil
@@ -148,17 +158,31 @@ func (h *Grid) GetEdge(u, v, k, ell int) *Edge {
     return h.edges[i][j][k%6][ell%6]
 }
 
-//  Length of a single dimension in the field (n).
+//  Returns the width and height of the Grid wrapped in a
+//  GridDimensions object.
 func (h *Grid) Size() GridDimensions {
     return GridDimensions{float64(h.n), float64(h.m)}
 }
+
 //  Total number of distinct hexagon vertices in the field.
-func (h *Grid) NumPoints() int {
-    return len(h.p)
+func (h *Grid) expectedNumVertices() int {
+    return 2*(h.n*h.m + h.n + h.m)
+}
+func (h *Grid) NumVertices() int {
+    return len(h.v)
+}
+func (h *Grid) expectedNumEdges() int {
+    return 3*h.n*h.m + 2*h.n + 2*h.m-1
+}
+func (h *Grid) NumEdges() int {
+    return len(h.e)
+}
+func (h *Grid) expectedNumTiles() int {
+    return h.n*h.m
 }
 //  Number of hex tiles in the field (n^2).
 func (h *Grid) NumTiles() int {
-    return h.n * h.m
+    return len(h.t)
 }
 func (h *Grid) NumCols() int {
     return h.n
@@ -661,7 +685,7 @@ func (h *Grid) GetEdgePointsShared(u1, v1, u2, v2 int) []Point {
 }
 
 func (h *Grid) genTiles(defaultValue Value) {
-    h.t = make([]Tile, 0, h.NumTiles())
+    h.t = make([]Tile, 0, h.expectedNumTiles())
     // Generate all tiles.
     h.tiles = make([][]*Tile, h.n)
     for i := 0; i < h.n; i++ {
@@ -687,7 +711,7 @@ func (h *Grid) genTiles(defaultValue Value) {
 }
 func (h *Grid) genVertices(defaultValue Value) {
     // Make space for vertices/pointers.
-    h.v = make([]Vertex, 0, 2*(h.n*h.m + h.n + h.m))
+    h.v = make([]Vertex, 0, h.expectedNumVertices())
     h.vertices = make([][][]*Vertex, h.n)
     for i := 0; i < h.n; i++ {
         h.vertices[i] = make([][]*Vertex, h.m)
@@ -738,7 +762,7 @@ func (h *Grid) genVertices(defaultValue Value) {
 }
 func (h *Grid) genEdges(defaultValue Value) {
     // Make space for edges/pointers.
-    h.e = make([]Edge, 0, 3*h.n*h.m + 2*h.n + 2*h.m-1)
+    h.e = make([]Edge, 0, h.expectedNumEdges())
     h.edges = make([][][][]*Edge, h.n)
     for i := 0; i < h.n; i++ {
         h.edges[i] = make([][][]*Edge, h.m)
@@ -816,7 +840,7 @@ func (h *Grid) genEdges(defaultValue Value) {
     }
 }
 func (h *Grid) genHexagons() {
-    h.p = make([]Point, 0, 2*(h.n*h.m + h.n + h.m))
+    h.p = make([]Point, 0, h.expectedNumVertices())
     h.hexes = make([][]*HexPoints, h.n)
     var indexOffsetU = h.horizontalIndexOffset()
 
