@@ -3,7 +3,7 @@ hexgrid version 0.3_0
 
 ABOUT hexgrid
 
-    Package hexgrid implements a n by n hexagonal grid. A grid can be
+    Package hexgrid implements an n by m hexagonal grid. A grid can be
     used in games with a hex-tile layout such as the games of Hex,
     Settlers of Catan, and Sid Meier's Civilization 5.
 
