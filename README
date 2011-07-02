@@ -1,11 +1,16 @@
-hexgrid version 0.0_1
+hexgrid version 0.1_0
 =======================================================================
 
 ABOUT hexgrid
-DEPENDENCIES
 
-    You must have Go installed (http://golang.org/) and the $GOROOT
-    environment variable must be set to the Go source root directory.
+    Package hexgrid implements a n by n hexagonal grid. A grid can be
+    used in games with a hex-tile layout such as the games of Hex,
+    Settlers of Catan, and Sid Meier's Civilization 5.
+
+    The Grid object has indexable tiles, vertices, and edges. The
+    tiles, vertices, and edges can be used to hold arbitrary objects.
+    And is navigatable as a graph no matter whether a game uses tile
+    connections, vertex connections, or both.
 
 INSTALLATION
 
