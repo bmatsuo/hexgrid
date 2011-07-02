@@ -143,8 +143,8 @@ func (h *Grid) GetEdges(coords Coords) []*Edge {
 }
 //  Returns the width and height of the Grid wrapped in a
 //  GridDimensions object.
-func (h *Grid) Size() GridDimensions {
-    return GridDimensions{float64(h.n), float64(h.m)}
+func (h *Grid) Size() Coords {
+    return Coords{h.n, h.m}
 }
 
 //  Total number of distinct hexagon vertices in the field.

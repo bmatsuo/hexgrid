@@ -34,9 +34,6 @@ func (c Coords) Edges() []EdgeCoords {
     }
 	return edges
 }
-type GridDimensions struct {
-    U, V float64
-}
 //  Vertices in the grid are indexed by hex coordinates paired with a
 //  vertex index K. Vertex indices range from 0 to 5 and begin in the
 //  south-west corner of the vertex. See also, HexDirection.
