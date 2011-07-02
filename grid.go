@@ -347,7 +347,7 @@ func (h *Grid) GetHexAdjacent(u, v int, dir HexDirection) []*HexPoints {
     if !h.WithinBounds(u, v) {
         return nil
     }
-    var adjC = Coords{u, v}.AdjacentCoords(dir)
+    var adjC = Coords{u, v}.Adjacents(dir)
     if adjC == nil {
         panic("niladjacency")
     }
@@ -530,7 +530,7 @@ func (h *Grid) genEdges(defaultValue Value) {
                         if edgeDir == NilDirection {
                             panic("niledgedirection")
                         }
-                        var adjCoordsSlice = Coords{u, v}.AdjacentCoords(edgeDir)
+                        var adjCoordsSlice = Coords{u, v}.Adjacents(edgeDir)
                         if adjCoordsSlice == nil {
                             panic("niladjcoords")
                         }

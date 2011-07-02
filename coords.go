@@ -131,7 +131,7 @@ func (c Coords) Adjacent(adj Coords) bool {
 //  are returned in that order.
 //  If NilDirection is suppied, then coordinates for all adjacent hexagons
 //  are returned in the order N, NE, SE, S, SW, NW.
-func (coords Coords) AdjacentCoords(dir HexDirection) []Coords {
+func (coords Coords) Adjacents(dir HexDirection) []Coords {
     var (
         u = coords.U
         v = coords.V
@@ -282,7 +282,7 @@ func (coord Coords) EdgeIndicesShared(other Coords) []int {
 //  This method needs testing.
 func (vert VertexCoords) IncidentEdges() []EdgeCoords {
     var (
-        adjVCs = vert.AdjacentCoords()
+        adjVCs = vert.Adjacents()
         edges = make([]EdgeCoords, len(adjVCs))
     )
     for i, other := range adjVCs {
@@ -332,7 +332,7 @@ func (vert VertexCoords) IdenticalVertices() []VertexCoords {
 
 //  Get a list of unique vertices adjacent to (u,v,k).
 //  See also, (VertexCoords) Identical.
-func (vert VertexCoords) AdjacentCoords() []VertexCoords {
+func (vert VertexCoords) Adjacents() []VertexCoords {
     var identVerts = vert.IdenticalVertices()
     if identVerts == nil {
         return nil
