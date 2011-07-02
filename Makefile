@@ -13,5 +13,6 @@ GOFILES=\
 		hexagon.go\
 		coords.go\
 		grid.go\
+		hexgrid.go\
 
 include $(GOROOT)/src/Make.pkg
