@@ -157,6 +157,27 @@ func (h *Grid) GetEdge(u, v, k, ell int) *Edge {
     i, j := h.hexIndex(u, v)
     return h.edges[i][j][k%6][ell%6]
 }
+func (h *Grid) GetEdges(coords Coords) []*Edge {
+    if !h.WithinBounds(coords.U, coords.V) {
+        return nil
+    }
+    var edges = make([]*Edge, 6)
+    for k := 0 ; k < 6 ; k++ {
+        edges[k] = h.GetEdge(coords.U, coords.V, k, (k+1)%6)
+    }
+    return edges
+}
+//  This method needs testing.
+func (h *Grid) GetEdgesCoordsIncident(vert VertexCoords) []EdgeCoords {
+    var (
+        adjVCs = h.GetVerticesAdjacent(vert)
+        edges = make([]EdgeCoords, len(adjVCs))
+    )
+    for i, other := range adjVCs {
+        edges[i] = h.GetEdgeCoordsSharedByVertices(vert, other)
+    }
+    return edges
+}
 
 //  Returns the width and height of the Grid wrapped in a
 //  GridDimensions object.
@@ -325,17 +346,27 @@ func (h *Grid) GetVertexAdjacentByEdge(vert VertexCoords, edge EdgeCoords) *Vert
     var coords = h.GetVertexCoordsAdjacentByEdge(vert, edge)
     return h.GetVertex(coords.U, coords.V, coords.K)
 }
+func (h *Grid) GetVertices(coords Coords) []*Vertex {
+    if !h.WithinBounds(coords.U, coords.V) {
+        return nil
+    }
+    var vertices = make([]*Vertex, 6)
+    for k := 0 ; k < 6 ; k++ {
+        vertices[k] = h.GetVertex(coords.U, coords.V, k)
+    }
+    return vertices
+}
 
 //  Get a list of unique vertices adjacent to (u,v,k).
 //  See also, VerticesAreIdentical.
-func (h *Grid) GetVerticesAdjacent(vert VertexCoords) [][]int {
+func (h *Grid) GetVerticesAdjacent(vert VertexCoords) []VertexCoords {
     var identVerts = h.GetVertexCoordsIdentical(vert)
     if identVerts == nil {
         return nil
     }
-    var adjVerts = make([][]int, len(identVerts))
+    var adjVerts = make([]VertexCoords, len(identVerts))
     for i, vert := range identVerts {
-        adjVerts[i] = []int{vert.U, vert.V, HexVertexIndexClockwise(vert.K)}
+        adjVerts[i] = VertexCoords{vert.U, vert.V, HexVertexIndexClockwise(vert.K)}
     }
     return adjVerts
 }
@@ -344,11 +375,10 @@ func (h *Grid) GetVerticesAdjacent(vert VertexCoords) [][]int {
 //  Returns nil when (u,v) is not within the bounds of h.
 //  Otherwise, a slice of *HexPoints is returned w/ hex tile (u,v) at index 0.
 func (h *Grid) GetHexIncident(vert VertexCoords) []*HexPoints {
-    var hex = h.GetHex(vert.U, vert.V)
-    if hex == nil {
+    if !h.WithinBounds(vert.U, vert.V) {
         return nil
     }
-    var adjC = h.GetVertexCoordsIdentical(vert)
+    var adjC = h.GetCoordsIncident(vert)
     var adj = make([]*HexPoints, 0, len(adjC))
     for _, coords := range adjC {
         var (
@@ -361,6 +391,71 @@ func (h *Grid) GetHexIncident(vert VertexCoords) []*HexPoints {
     }
 
     return adj
+}
+func (h *Grid) GetTilesIncident(vert VertexCoords) []*Tile {
+    var adjC = h.GetCoordsIncident(vert)
+    var adj = make([]*Tile, 0, len(adjC))
+    for _, coords := range adjC {
+        var (
+            tileAdj = h.GetTile(coords.U, coords.V)
+        )
+        if tileAdj == nil {
+            continue
+        }
+        adj = append(adj, tileAdj)
+    }
+
+    return adj
+}
+func (h *Grid) GetCoordsIncident(vert VertexCoords) []Coords {
+    var (
+        adjVC = h.GetVertexCoordsIdentical(vert)
+        adj = make([]Coords, 0, len(adjVC))
+    )
+    for _, coords := range adjVC {
+        var (
+            adjCoords = Coords{coords.U, coords.V}
+        )
+        adj = append(adj, adjCoords)
+    }
+
+    return adj
+}
+func (h *Grid) GetCoordsSharedByVertices(vert1, vert2 VertexCoords) []Coords {
+    var (
+        adjC1 = h.GetCoordsIncident(vert1)
+        adjC2 = h.GetCoordsIncident(vert2)
+    )
+    var shared = make([]Coords, 0, 1)
+    for _, c1 := range adjC1 {
+        for _, c2 := range adjC2 {
+            if c1.U == c2.U && c1.V == c2.V {
+                shared = append(shared, c1)
+            }
+        }
+    }
+    return shared
+}
+func (h *Grid) GetCoordsSharedByEdge(edge EdgeCoords) []Coords {
+    vert1, vert2 := edge.Ends()
+    return h.GetCoordsSharedByVertices(vert1, vert2)
+}
+func (h *Grid) GetTilesSharedByCoords(vert1, vert2 VertexCoords) []*Tile {
+    var (
+        shared = h.GetCoordsSharedByVertices(vert1, vert2)
+        tiles = make([]*Tile, 0, len(shared))
+    )
+    for _, coord := range shared {
+        var tile = h.GetTile(coord.U, coord.V)
+        if tile == nil {
+            continue
+        }
+        tiles = append(tiles, tile)
+    }
+    if len(tiles) == 0 {
+        return nil
+    }
+    return tiles
 }
 
 /* Internal methods for computing hexagon positions. */

@@ -13,13 +13,19 @@ Rename some methods
 
 Make some methods
 
-    (*Grid) GetCoordsIncident(vert VertexCoords) []Coords
+    [DONE] (*Grid) GetCoordsIncident(vert VertexCoords) []Coords
         Use code from GetHexIncident or whatever it is doing...
-    (*Grid) GetCoordsSharingEdge(EdgeCoords) []Coords
+    [DONE] (*Grid) GetTilesIncident(vert VertexCoords) []Tile
+        Use code from GetHexIncident or whatever it is doing...
+    [DONE] (*Grid) GetCoordsSharedByVertices(vert1, vert2 VertexCoords) []Coords
         Return the intersection of two calls to the previous method.
-    (*Grid) GetEdges(Coords) []*Edge
+    [DONE] (*Grid) GetTilesSharedByVertices(vert1, vert2 VertexCoords) []*Tile
+        Return the tiles shared by two vertex
+    [DONE] (*Grid) GetEdges(Coords) []*Edge
         Return all edges of a hex tile (0,1), (1,2), ..., (5,0)
-    (*Grid) GetEdgesIncident(VertexCoords) []*Edge
+    [DONE] (*Grid) GetEdgesIncident(VertexCoords) []*Edge
         Return a list of edges leaving the given vertex coordinates.
-    (*Grid) GetVertices(Coords) []*Vertices
+    [DONE] (*Grid) GetEdgesCoordsIncident(VertexCoords) []*Edge
+        Return a list of edge coordinates leaving the given vertex coordinates.
+    [DONE] (*Grid) GetVertices(Coords) []*Vertices
         Return all vertices of a hex tile 0, 1, ..., 5
