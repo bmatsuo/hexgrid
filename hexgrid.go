@@ -26,8 +26,12 @@
 //  So the end points (vertices) of the edge are also incident with both
 //  tiles.
 //
-//  Instead of forcing the idea of incidence onto edges and vertices, we
-//  simply say edges have 'ends' and vertices have 'edges'. Although,
-//  there is a notion of adjacency between two vertices, and similarly,
-//  between two edges. Although, the latter is rarely used.
+//  Because tiles are incident to both edges and vertices, instead of
+//  referring to them as the 'incident edges' and 'incident vertices' of
+//  the tile, they are simply the 'edges' and the 'vertices' of the tile.
+//
+//  Furthermore, instead of forcing the idea of incidence onto edges and
+//  vertices, we simply say edges have 'ends' and vertices have 'edges'.
+//  Although, there is a notion of adjacency between two vertices, and
+//  similarly, between two edges. Although, the latter is rarely used.
 package hexgrid
