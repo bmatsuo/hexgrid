@@ -14,10 +14,26 @@ ABOUT hexgrid
 
 INSTALLATION
 
-    The following command will install hexgrid into the path
-    $GOROOT/pkg/ARCH, where ARCH is your current architecture.
+    Easiest installation is through goinstall
 
+        goinstall github.com/bmatsuo/hexgrid
+
+    Or, alternatively, you can clone the repository and install locally.
+
+        git clone git://github.com/bmatsuo/hexgrid.git
+        cd hexgrid
         gomake install
+
+DOCUMENTATION
+
+    The best way to view the documentation is by running a godoc http
+    server.
+
+        godoc -http=:6060
+
+    Then, in a web browser, visit the url
+
+        http://localhost:6060/pkg/github.com/bmatsuo/hexgrid/
 
 AUTHOR
 
