@@ -1,31 +1,17 @@
-Turn some methods into package functions.
+Grid methods of the form Get* which don't actually use the Grid should be replaced by package functions with no "Get" prefix. Then the prefix "Get" refers to fetching an object (Tile, Vertex, or Edge) from the grid.
 
-    [DONE] (*Grid) GetVertexIndexClockwise(int) int -> HexVertexIndexClockwise(int) int
-    [DONE] (*Grid) GetVertexIndexCounterClockwise(int) int -> HexVertexIndexCounterClockwise(int) int
-    [DONE] (*Grid) VertexIndex(HexDirection) int -> HexVertexDirection(HexDirection) int
-    [DONE] (*HexPoints) Edge(HexDirection) []Point -> (*HexPoints) EdgePoints(HexDirection) []Point
-    [DONE] (*HexPoints) EdgeDirection(int, int) HexDirection -> HexEdgeDirection(int, int) HexDirection
-    [DONE] (*HexPoints) EdgeIndices(HexDirection) (int, int) -> HexEdgeIndices(HexDirection) (int, int)
+Methods to be renamed:
 
-Rename some methods
-
-    [DONE] (*Grid) GetHexAdjacentCoords(int, int, HexDirection) [][]int -> (*Grid) GetCoordsAdjacent(Coords, HexDirection) []Coords
-
-Make some methods
-
-    [DONE] (*Grid) GetCoordsIncident(vert VertexCoords) []Coords
-        Use code from GetHexIncident or whatever it is doing...
-    [DONE] (*Grid) GetTilesIncident(vert VertexCoords) []Tile
-        Use code from GetHexIncident or whatever it is doing...
-    [DONE] (*Grid) GetCoordsSharedByVertices(vert1, vert2 VertexCoords) []Coords
-        Return the intersection of two calls to the previous method.
-    [DONE] (*Grid) GetTilesSharedByVertices(vert1, vert2 VertexCoords) []*Tile
-        Return the tiles shared by two vertex
-    [DONE] (*Grid) GetEdges(Coords) []*Edge
-        Return all edges of a hex tile (0,1), (1,2), ..., (5,0)
-    [DONE] (*Grid) GetEdgesIncident(VertexCoords) []*Edge
-        Return a list of edges leaving the given vertex coordinates.
-    [DONE] (*Grid) GetEdgesCoordsIncident(VertexCoords) []*Edge
-        Return a list of edge coordinates leaving the given vertex coordinates.
-    [DONE] (*Grid) GetVertices(Coords) []*Vertices
-        Return all vertices of a hex tile 0, 1, ..., 5
+    HexVertexDirection(k int)
+    CoordsAdjancency(t1, t2 Coords) [replacing (*Grid) HexAdjacency(...)]
+    CoordsAdjacent(Coords)
+    CoordsIncident(VertexCoords)
+    CoordsSharedByEdge(EdgeCoords)
+    CoordsSharedByVertices(vert1, vert2 VertexCoords)
+    EdgeCoordsSharedByVertices(vert1, vert2 VertexCoords)
+    EdgeIndicesShared(t1, t2 Coords) [or (Coords) EdgeIndicesShared(t2 Coords)]
+    EdgeCoordsIncident(VertexCoords)
+    VertexCoordsAdjacentByEdge(VertexCoords, EdgeCoords)
+    VertexCoordsIdentical(VertexCoords)
+    VertexCoordsIncident(Coords)
+    VerticesAreIdentical(vert1, vert2 VertexCoords)
