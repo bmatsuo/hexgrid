@@ -366,7 +366,7 @@ func (h *Grid) GetHexAdjacent(u, v int, dir HexDirection) []*HexPoints {
 }
 
 func (h *Grid) GetEdgeSharedByVertices(vert1, vert2 VertexCoords) *Edge {
-    var coords = vert1.EdgeCoordsSharedByVertex(vert2)
+    var coords = vert1.EdgeSharedByVertex(vert2)
     return h.GetEdge(coords.U, coords.V, coords.K, coords.L)
 }
 

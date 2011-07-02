@@ -239,7 +239,7 @@ func (vert VertexCoords) SharedByVertex(vert2 VertexCoords) []Coords {
     return shared
 }
 
-func (vert VertexCoords) EdgeCoordsSharedByVertex(vert2 VertexCoords) EdgeCoords {
+func (vert VertexCoords) EdgeSharedByVertex(vert2 VertexCoords) EdgeCoords {
     if vert.Identical(vert2) {
         return EdgeCoords{}
     }
@@ -286,7 +286,7 @@ func (vert VertexCoords) IncidentEdges() []EdgeCoords {
         edges = make([]EdgeCoords, len(adjVCs))
     )
     for i, other := range adjVCs {
-        edges[i] = vert.EdgeCoordsSharedByVertex(other)
+        edges[i] = vert.EdgeSharedByVertex(other)
     }
     return edges
 }
