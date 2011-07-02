@@ -25,7 +25,7 @@ type imageDesc struct {
 
 var (
     idesc                          = imageDesc{800, 800, 32}
-    hfield                         = NewGrid(33, 80, nil, nil, nil)
+    hfield                         = NewGrid(23, 53, 80, nil, nil, nil)
     hexLabelFontSize       float64 = 24
     hexLabelOffset                 = Point{-63, -10}
     hexCornerLabelFontSize float64 = 12

@@ -33,6 +33,9 @@ var (
 type Coords struct {
     U, V int
 }
+type GridDimensions struct {
+    U, V float64
+}
 //  Vertices in the grid are indexed by hex coordinates paired with a
 //  vertex index K. Vertex indices range from 0 to 5 and begin in the
 //  south-west corner of the vertex. See also, HexDirection.
@@ -83,6 +86,7 @@ type EdgeInitializer    func (coords EdgeCoords, v1, v2 *Vertex) Value
 type Grid struct {
     radius   float64
     n        int
+    m        int
     p        []Point
     v        []Vertex
     e        []Edge
@@ -93,13 +97,13 @@ type Grid struct {
     edges    [][][][]*Edge
 }
 
-//  Create an nxn grid of hexagons with radius r.
-//  The integer n must be odd.
-func NewGrid(n int, r float64, tileDefault, vertexDefault, edgeDefault interface{}) *Grid {
-    if n&1 == 0 {
+//  Create an nxm grid of hexagons with radius r. Where n is the number of
+//  columns and m is the number of rows. The integers n and m must be odd.
+func NewGrid(n, m int, r float64, tileDefault, vertexDefault, edgeDefault interface{}) *Grid {
+    if n&1 == 0 || m&1 == 0 {
         panic("evensize")
     }
-    if n < 0 {
+    if n < 0 || n < 0 {
         panic("negsize")
     }
     if r < 0 {
@@ -108,6 +112,7 @@ func NewGrid(n int, r float64, tileDefault, vertexDefault, edgeDefault interface
     var h = new(Grid)
     h.radius = r
     h.n = n
+    h.m = m
     h.genHexagons()
     h.genTiles(tileDefault)
     h.genVertices(vertexDefault)
@@ -144,8 +149,8 @@ func (h *Grid) GetEdge(u, v, k, ell int) *Edge {
 }
 
 //  Length of a single dimension in the field (n).
-func (h *Grid) Size() int {
-    return h.n
+func (h *Grid) Size() GridDimensions {
+    return GridDimensions{float64(h.n), float64(h.m)}
 }
 //  Total number of distinct hexagon vertices in the field.
 func (h *Grid) NumPoints() int {
@@ -153,29 +158,36 @@ func (h *Grid) NumPoints() int {
 }
 //  Number of hex tiles in the field (n^2).
 func (h *Grid) NumTiles() int {
-    return h.n * h.n
+    return h.n * h.m
 }
-func (h *Grid) indexOffset() int {
-    return int(math.Floor(float64(h.n) / 2))
+func (h *Grid) NumCols() int {
+    return h.n
+}
+func (h *Grid) NumRows() int {
+    return h.m
+}
+func (h *Grid) horizontalIndexOffset() int {
+    return int(math.Floor(float64(h.NumCols()) / 2))
+}
+func (h *Grid) verticalIndexOffset() int {
+    return int(math.Floor(float64(h.NumRows()) / 2))
 }
 //  Minimum value of the row coordinate v.
-func (h *Grid) RowMin() int { return -h.indexOffset() }
+func (h *Grid) RowMin() int { return -h.verticalIndexOffset() }
 //  Maximum value of the row coordinate v.
-func (h *Grid) RowMax() int { return h.indexOffset() }
+func (h *Grid) RowMax() int { return h.verticalIndexOffset() }
 //  Minimum value of the column coordinate u.
-func (h *Grid) ColMin() int { return -h.indexOffset() }
+func (h *Grid) ColMin() int { return -h.horizontalIndexOffset() }
 //  Maximum value of the column coordinate u.
-func (h *Grid) ColMax() int { return h.indexOffset() }
+func (h *Grid) ColMax() int { return h.horizontalIndexOffset() }
 
 
 /* Some coordinate <-> index internal methods. */
 func (h *Grid) hexCoords(i, j int) (int, int) {
-    var offset = h.indexOffset()
-    return i - offset, j - offset
+    return i + h.ColMin(), j + h.RowMin()
 }
 func (h *Grid) hexIndex(u, v int) (int, int) {
-    var offset = h.indexOffset()
-    return u + offset, v + offset
+    return u - h.ColMin(), v - h.RowMin()
 }
 
 /* Internal bounds checking method. */
@@ -185,11 +197,10 @@ func (h *Grid) indexWithinBounds(i, j int) bool {
 }
 //  Returns true if the hex at coordinates (u,v) is in the hex field.
 func (h *Grid) WithinBounds(u, v int) bool {
-    var offset = h.indexOffset()
-    if int(math.Fabs(float64(u))) > offset {
+    if int(math.Fabs(float64(u))) > h.ColMax() {
         return false
     }
-    if int(math.Fabs(float64(v))) > offset {
+    if int(math.Fabs(float64(v))) > h.RowMax() {
         return false
     }
     return true
@@ -331,10 +342,10 @@ func (h *Grid) GetHexIncident(vert VertexCoords) []*HexPoints {
 /* Internal methods for computing hexagon positions. */
 func (h *Grid) columnIsHigh(u int) bool {
     var (
-        offset     = uint(h.indexOffset())
-        i          = uint(u + int(offset))
+        offsetU    = uint(h.horizontalIndexOffset())
+        i          = uint(u + int(offsetU))
         iOdd       = i % 2
-        sideIsHigh = offset % 2
+        sideIsHigh = offsetU % 2
     )
     return iOdd^sideIsHigh == 1
 }
@@ -650,12 +661,12 @@ func (h *Grid) GetEdgePointsShared(u1, v1, u2, v2 int) []Point {
 }
 
 func (h *Grid) genTiles(defaultValue Value) {
-    h.t = make([]Tile, 0, h.n*h.n)
+    h.t = make([]Tile, 0, h.NumTiles())
     // Generate all tiles.
     h.tiles = make([][]*Tile, h.n)
     for i := 0; i < h.n; i++ {
-        h.tiles[i] = make([]*Tile, h.n)
-        for j := 0; j < h.n; j++ {
+        h.tiles[i] = make([]*Tile, h.m)
+        for j := 0; j < h.m; j++ {
             var (
                 u, v    = h.hexCoords(i, j)
                 coords  = Coords{u, v}
@@ -676,17 +687,17 @@ func (h *Grid) genTiles(defaultValue Value) {
 }
 func (h *Grid) genVertices(defaultValue Value) {
     // Make space for vertices/pointers.
-    h.v = make([]Vertex, 0, 2*int(math.Pow(float64(h.n), 2)+2*float64(h.n)))
+    h.v = make([]Vertex, 0, 2*(h.n*h.m + h.n + h.m))
     h.vertices = make([][][]*Vertex, h.n)
     for i := 0; i < h.n; i++ {
-        h.vertices[i] = make([][]*Vertex, h.n)
-        for j := 0; j < h.n; j++ {
+        h.vertices[i] = make([][]*Vertex, h.m)
+        for j := 0; j < h.m; j++ {
             h.vertices[i][j] = make([]*Vertex, 6)
         }
     }
     // Generate vertices
     for i := 0; i < h.n; i++ {
-        for j := 0; j < h.n; j++ {
+        for j := 0; j < h.m; j++ {
             var (
                 u, v = h.hexCoords(i, j)
                 hex  = h.GetHex(u, v)
@@ -727,11 +738,11 @@ func (h *Grid) genVertices(defaultValue Value) {
 }
 func (h *Grid) genEdges(defaultValue Value) {
     // Make space for edges/pointers.
-    h.e = make([]Edge, 0, 3*int(math.Pow(float64(h.n), 2))+4*h.n-1)
+    h.e = make([]Edge, 0, 3*h.n*h.m + 2*h.n + 2*h.m-1)
     h.edges = make([][][][]*Edge, h.n)
     for i := 0; i < h.n; i++ {
-        h.edges[i] = make([][][]*Edge, h.n)
-        for j := 0; j < h.n; j++ {
+        h.edges[i] = make([][][]*Edge, h.m)
+        for j := 0; j < h.m; j++ {
             h.edges[i][j] = make([][]*Edge, 6)
             for k := 0; k < 6; k++ {
                 h.edges[i][j][k] = make([]*Edge, 6)
@@ -740,7 +751,7 @@ func (h *Grid) genEdges(defaultValue Value) {
     }
     // Generate all edges.
     for i := 0; i < h.n; i++ {
-        for j := 0; j < h.n; j++ { // BEGIN (u,v) TILE ANALYSIS
+        for j := 0; j < h.m; j++ { // BEGIN (u,v) TILE ANALYSIS
             var (
                 u, v = h.hexCoords(i, j)
             )
@@ -805,14 +816,14 @@ func (h *Grid) genEdges(defaultValue Value) {
     }
 }
 func (h *Grid) genHexagons() {
-    h.p = make([]Point, 0, 2*int(math.Pow(float64(h.n), 2)+2*float64(h.n)))
+    h.p = make([]Point, 0, 2*(h.n*h.m + h.n + h.m))
     h.hexes = make([][]*HexPoints, h.n)
-    var indexOffset = h.indexOffset()
+    var indexOffsetU = h.horizontalIndexOffset()
 
     // Generate all hexagons.
     for i := 0; i < h.n; i++ {
-        h.hexes[i] = make([]*HexPoints, h.n)
-        for j := 0; j < h.n; j++ {
+        h.hexes[i] = make([]*HexPoints, h.m)
+        for j := 0; j < h.m; j++ {
             var (
                 u, v = h.hexCoords(i, j)
             )
@@ -825,10 +836,10 @@ func (h *Grid) genHexagons() {
 
     // Collect all points, sharing common points belonging to adjacent hexagons.
     for i := 0; i < h.n; i++ {
-        for j := 0; j < h.n; j++ {
+        for j := 0; j < h.m; j++ {
             var (
                 toAdd = [6]bool{true, true, true, true, true, true}
-                u     = i - indexOffset
+                u     = i - indexOffsetU
                 hex   = h.hexes[i][j]
             )
             var iHigh = h.columnIsHigh(u)
