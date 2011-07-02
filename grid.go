@@ -136,8 +136,8 @@ func (h *Grid) GetEdges(coords Coords) []*Edge {
         return nil
     }
     var edges = make([]*Edge, 6)
-    for k := 0 ; k < 6 ; k++ {
-        edges[k] = h.GetEdge(coords.U, coords.V, k, (k+1)%6)
+    for k, e := range coords.Edges() {
+        edges[k] = h.GetEdge(e.U, e.V, e.K, e.L)
     }
     return edges
 }
@@ -257,8 +257,8 @@ func (h *Grid) GetVertices(coords Coords) []*Vertex {
         return nil
     }
     var vertices = make([]*Vertex, 6)
-    for k := 0 ; k < 6 ; k++ {
-        vertices[k] = h.GetVertex(coords.U, coords.V, k)
+	for k, v := range coords.Vertices() {
+        vertices[k] = h.GetVertex(v.U, v.V, k)
     }
     return vertices
 }
@@ -375,7 +375,7 @@ func (h *Grid) GetEdgeSharedByVertices(vert1, vert2 VertexCoords) *Edge {
 //  (u2,v2). Returns nil if the hex coordinates are not
 //  adjacent.
 func (h *Grid) GetEdgeShared(coord1, coord2 Coords) *Edge {
-    var indices = coord1.EdgeIndicesShared(coord2)
+    var indices = coord1.EdgesShared(coord2)
     if indices == nil {
         return nil
     }
@@ -392,7 +392,7 @@ func (h *Grid) GetEdgePointsShared(coord1, coord2 Coords) []Point {
     if !h.WithinBounds(coord2.U, coord2.V) {
         return nil
     }
-    var sharedIndices = coord1.EdgeIndicesShared(coord2)
+    var sharedIndices = coord1.EdgesShared(coord2)
     if sharedIndices == nil {
         return nil
     }

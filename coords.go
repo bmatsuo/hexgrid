@@ -18,6 +18,22 @@ type Coords struct {
 func (coords Coords) Equals(other Coords) bool {
     return coords.U == other.U && coords.V == other.V
 }
+//	The vertices of c in order 0, 1, ..., 5
+func (c Coords) Vertices() []VertexCoords {
+    var vertices = make([]VertexCoords, 6)
+    for k := 0 ; k < 6 ; k++ {
+        vertices[k] = VertexCoords{c.U, c.V, k}
+    }
+	return vertices
+}
+//	The vertices of c in order (0,1) (1,2), ..., (5,0)
+func (c Coords) Edges() []EdgeCoords {
+    var edges = make([]EdgeCoords, 6)
+    for k := 0 ; k < 6 ; k++ {
+        edges[k] = EdgeCoords{c.U, c.V, k, (k+1)%6}
+    }
+	return edges
+}
 type GridDimensions struct {
     U, V float64
 }
@@ -80,6 +96,28 @@ func (e EdgeCoords) IsIdentical(e2 EdgeCoords) bool {
         return true
     }
     return false
+}
+
+//	Returns coordinates of edges sharing one endpoint with e.
+func (e EdgeCoords) Adjacents() []EdgeCoords {
+	if e.IsNil() {
+		return nil
+	}
+	var (
+		v1, v2 = e.Incidents()
+		adj = make([]EdgeCoords, 0, 4)
+	)
+	for _, e1 := range v1.IncidentEdges() {
+		if !e.IsIdentical(e1) {
+			adj = append(adj, e1)
+		}
+	}
+	for _, e2 := range v2.IncidentEdges() {
+		if !e.IsIdentical(e2) {
+			adj = append(adj, e2)
+		}
+	}
+	return adj
 }
 //  Test if an edge is NilEdge. Synonymn for e.Equals(NilEdgeCoords())
 func (e EdgeCoords) IsNil() bool {
@@ -295,7 +333,7 @@ func (vert VertexCoords) EdgeShared(vert2 VertexCoords) EdgeCoords {
             if ident1.Coords().Equals(ident2.Coords()) {
                 return EdgeCoords{ident1.U, ident1.V, ident1.K, ident2.K}
             }
-            var edge = ident1.Coords().EdgeIndicesShared(ident2.Coords())
+            var edge = ident1.Coords().EdgesShared(ident2.Coords())
             if edge != nil {
                 return EdgeCoords{ident1.U, ident1.V, edge[0], edge[1]}
             }
@@ -308,7 +346,7 @@ func (vert VertexCoords) EdgeShared(vert2 VertexCoords) EdgeCoords {
 //  Function for determining the vertex indices of an edge in
 //  the hex tile at (u1,v1) that is alse in tile (u2,v2).
 //  Returns nil if the hex coordinates are not adjacent.
-func (coord Coords) EdgeIndicesShared(other Coords) []int {
+func (coord Coords) EdgesShared(other Coords) []int {
     var adjDir = coord.Adjacency(other)
     if adjDir == NilDirection {
         return nil
