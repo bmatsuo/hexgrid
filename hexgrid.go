@@ -15,13 +15,19 @@
 //  The basic idea behind connections, as far as the API is concerned, is
 //  that of two core concepts in graph theory *incidence* and *adjacency*.
 //  Adjacency is a binary relation on objects of the same type. While,
-//  incidence is a binary relation on objects of strictly different type.
+//  incidence is a symmetric binary relation on tiles and objects of other
+//  strictly different types.
 //  
 //  For example, tiles are adjacent other tiles with which they share one
 //  edge. An object shared by two adjacent objects is incident with both
 //  those objects seperately. So, continuing the example, the shared edge
 //  between two adjacent tiles is incident with each tile. Similarly,
-//  the endpoints of that edge are shared between the adjacent tiles,
-//  so the end points (vertices) of the edge are also incident with both
+//  the endpoints of that edge are shared between the adjacent tiles.
+//  So the end points (vertices) of the edge are also incident with both
 //  tiles.
+//
+//  Instead of forcing the idea of incidence onto edges and vertices, we
+//  simply say edges have 'ends' and vertices have 'edges'. Although,
+//  there is a notion of adjacency between two vertices, and similarly,
+//  between two edges. Although, the latter is rarely used.
 package hexgrid

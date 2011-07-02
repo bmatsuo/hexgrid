@@ -64,6 +64,12 @@ func (vc VertexCoords) IsIdentical(other VertexCoords) bool {
     }
     return false
 }
+func (vc VertexCoords) Clockwise() VertexCoords {
+	return VertexCoords{vc.U, vc.V, HexVertexIndexClockwise(vc.K)}
+}
+func (vc VertexCoords) CounterClockwise() VertexCoords {
+	return VertexCoords{vc.U, vc.V, HexVertexIndexCounterClockwise(vc.K)}
+}
 
 //  Edges in the grid are index by hex coordinates along with a pair of
 //  vertex indices K and L.
@@ -87,8 +93,8 @@ func (e EdgeCoords) reverse() EdgeCoords {
 //  Returns true if and only if e and e2 reference the same edge.
 func (e EdgeCoords) IsIdentical(e2 EdgeCoords) bool {
     var (
-        adjc = e.IncidentCoords()
-        adjc2 = e2.IncidentCoords()
+        adjc = e.Incidents()
+        adjc2 = e2.Incidents()
     )
     if adjc[0].Equals(adjc2[1]) && adjc[1].Equals(adjc[0]) {
         return true
@@ -104,15 +110,15 @@ func (e EdgeCoords) Adjacents() []EdgeCoords {
 		return nil
 	}
 	var (
-		v1, v2 = e.Incidents()
+		v1, v2 = e.Ends()
 		adj = make([]EdgeCoords, 0, 4)
 	)
-	for _, e1 := range v1.IncidentEdges() {
+	for _, e1 := range v1.Edges() {
 		if !e.IsIdentical(e1) {
 			adj = append(adj, e1)
 		}
 	}
-	for _, e2 := range v2.IncidentEdges() {
+	for _, e2 := range v2.Edges() {
 		if !e.IsIdentical(e2) {
 			adj = append(adj, e2)
 		}
@@ -124,7 +130,7 @@ func (e EdgeCoords) IsNil() bool {
     return e.Equals(nilEdgeCoords)
 }
 //  Retrieve the coordinates of e's incident vertices.
-func (e EdgeCoords) Incidents() (v1, v2 VertexCoords) {
+func (e EdgeCoords) Ends() (v1, v2 VertexCoords) {
     v1 = VertexCoords{e.U,e.V,e.K}
     v2 = VertexCoords{e.U,e.V,e.L}
     return v1, v2
@@ -290,11 +296,11 @@ func (vert VertexCoords) Incidents() []Coords {
 
 //  The Coords of tiles which share edge e. There are exactly two such
 //  Coords for any (real) edge. Returns nil if e is NilEdgeCoords()
-func (e EdgeCoords) IncidentCoords() []Coords {
+func (e EdgeCoords) Incidents() []Coords {
     if e.IsNil() {
         return nil
     }
-    vert1, vert2 := e.Incidents()
+    vert1, vert2 := e.Ends()
     return vert1.CoordsShared(vert2)
 }
 
@@ -356,7 +362,7 @@ func (coord Coords) EdgesShared(other Coords) []int {
 }
 
 //  This method needs testing.
-func (vert VertexCoords) IncidentEdges() []EdgeCoords {
+func (vert VertexCoords) Edges() []EdgeCoords {
     var (
         adjVCs = vert.Adjacents()
         edges = make([]EdgeCoords, len(adjVCs))
@@ -369,7 +375,7 @@ func (vert VertexCoords) IncidentEdges() []EdgeCoords {
 
 //  This is untested.
 func (vert VertexCoords) AdjacentByEdge(edge EdgeCoords) VertexCoords {
-    v1, v2 := edge.Incidents()
+    v1, v2 := edge.Ends()
     if vert.IsIdentical(v1) {
         return v2
     } else if vert.IsIdentical(v2) {
