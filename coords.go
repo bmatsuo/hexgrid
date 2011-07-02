@@ -220,10 +220,10 @@ func (vert VertexCoords) Incidents() []Coords {
 
 func (edge EdgeCoords) SharedByEnds() []Coords {
     vert1, vert2 := edge.Ends()
-    return vert1.SharedByVertex(vert2)
+    return vert1.CoordsShared(vert2)
 }
 
-func (vert VertexCoords) SharedByVertex(vert2 VertexCoords) []Coords {
+func (vert VertexCoords) CoordsShared(vert2 VertexCoords) []Coords {
     var (
         adjC1 = vert.Incidents()
         adjC2 = vert2.Incidents()

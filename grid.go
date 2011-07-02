@@ -301,7 +301,7 @@ func (h *Grid) GetTilesIncident(vert VertexCoords) []*Tile {
 }
 func (h *Grid) GetTilesSharedByCoords(vert1, vert2 VertexCoords) []*Tile {
     var (
-        shared = vert1.SharedByVertex(vert2)
+        shared = vert1.CoordsShared(vert2)
         tiles = make([]*Tile, 0, len(shared))
     )
     for _, coord := range shared {
