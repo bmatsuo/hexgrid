@@ -1,0 +1,23 @@
+Turn some methods into package functions.
+
+    (*Grid) VertexIndex(HexDirection) int -> HexVertexDirection(HexDirection) int
+    (*HexPoints) Edge(HexDirection) []Point -> HexEdgePoints(HexDirection) []Point
+    (*HexPoints) EdgeDirection(int, int) HexDirection -> HexEdgeDirection(int, int) HexDirection
+    (*HexPoints) EdgeIndices(HexDirection) (int, int) -> HexEdgeIndices(HexDirection) (int, int)
+
+Rename some methods
+
+    (*Grid) GetHexAdjacentCoords(int, int, HexDirection) [][]int -> (*Grid) GetCoordsAdjacent(Coords, HexDirection) []Coords
+
+Make some methods
+
+    (*Grid) GetCoordsIncident(vert VertexCoords) []Coords
+        Use code from GetHexIncident or whatever it is doing...
+    (*Grid) GetCoordsSharingEdge(EdgeCoords) []Coords
+        Return the intersection of two calls to the previous method.
+    (*Grid) GetEdges(Coords) []*Edge
+        Return all edges of a hex tile (0,1), (1,2), ..., (5,0)
+    (*Grid) GetEdgesIncident(VertexCoords) []*Edge
+        Return a list of edges leaving the given vertex coordinates.
+    (*Grid) GetVertices(Coords) []*Vertices
+        Return all vertices of a hex tile 0, 1, ..., 5
