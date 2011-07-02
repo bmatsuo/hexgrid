@@ -1,1 +1,1 @@
-Many of the now package functions should be turned into methods of their respective objects.
+Solidify coords.go method names.
