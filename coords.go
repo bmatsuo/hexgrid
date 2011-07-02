@@ -34,6 +34,7 @@ func (c Coords) Edges() []EdgeCoords {
     }
 	return edges
 }
+
 //  Vertices in the grid are indexed by hex coordinates paired with a
 //  vertex index K. Vertex indices range from 0 to 5 and begin in the
 //  south-west corner of the vertex. See also, HexDirection.
@@ -140,7 +141,6 @@ func columnIsHigh(u int) bool {
 func sameTile(u1, v1, u2, v2 int) bool {
     return Coords{u1, v1}.Equals(Coords{u2, v2})
 }
-
 
 //  If hex tiles (u1,v1) and (u2,v2) are adjacent, the direction of (u2,v2)
 //  from (u1,v1) is returned. Otherwise NilDirection is returned.
