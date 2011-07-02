@@ -1,6 +1,6 @@
 *hexgrid version 0.3_2*
 
-ABOUT hexgrid
+About hexgrid
 =============
 
 Package hexgrid implements an n by m hexagonal grid. A grid can be
@@ -12,8 +12,11 @@ tiles, vertices, and edges can be used to hold arbitrary objects.
 And is navigatable as a graph no matter whether a game uses tile
 connections, vertex connections, or both.
 
-INSTALLATION
-============
+Documentation
+=============
+
+Installation
+------------
 
 Easiest installation is through goinstall
 
@@ -25,8 +28,8 @@ Or, alternatively, you can clone the repository and install locally.
     cd hexgrid
     gomake install
 
-DOCUMENTATION
-=============
+General Documentation
+---------------------
 
 The best way to view the documentation is by running a godoc http
 server.
@@ -36,12 +39,12 @@ server.
 Then, in a web browser, visit the url
 http://localhost:6060/pkg/github.com/bmatsuo/hexgrid/
 
-AUTHOR
+Author
 ======
 
 **Bryan Matsuo** <bmatsuo@soe.ucsc.edu>
 
-COPYRIGHT & LICENSE
+Copyright & License
 ===================
 
 (C) 2011 Bryan Matsuo 
