@@ -11,6 +11,7 @@ TARG=hexgrid
 GOFILES=\
 		point2d.go\
 		hexagon.go\
+		coords.go\
 		grid.go\
 
 include $(GOROOT)/src/Make.pkg
