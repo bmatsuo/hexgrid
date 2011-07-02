@@ -1,16 +1,12 @@
-*hexgrid version 1.1_2*
+*hexgrid version 1.1_5*
 
 About hexgrid
 =============
 
-Package hexgrid implements an n by m hexagonal grid. A grid can be
-used in games with a hex-tile layout such as the games of Hex,
-Settlers of Catan, and Sid Meier's Civilization 5.
+Package hexgrid implements an n by m hex-tile grid for use in games.
 
-The Grid object has indexable tiles, vertices, and edges. The
-tiles, vertices, and edges can be used to hold arbitrary objects.
-And is navigatable as a graph no matter whether a game uses tile
-connections, vertex connections, or both.
+A grid can be used in games with a hex-tile layout such as the games of
+Hex, Settlers of Catan, and Sid Meier's Civilization 5.
 
 Documentation
 =============
