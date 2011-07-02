@@ -374,29 +374,29 @@ func (h *Grid) GetEdgeSharedByVertices(vert1, vert2 VertexCoords) *Edge {
 //  between the hex tile at (u1,v1) that is alse in tile
 //  (u2,v2). Returns nil if the hex coordinates are not
 //  adjacent.
-func (h *Grid) GetEdgeShared(u1, v1, u2, v2 int) *Edge {
-    var indices = EdgeIndicesShared(u1, v1, u2, v2)
+func (h *Grid) GetEdgeShared(coord1, coord2 Coords) *Edge {
+    var indices = EdgeIndicesShared(coord1, coord2)
     if indices == nil {
         return nil
     }
-    return h.GetEdge(u1, v1, indices[0], indices[1])
+    return h.GetEdge(coord1.U, coord1.V, indices[0], indices[1])
 }
 //  Function for determining the actual points determining any shared edge
 //  between hex tiles (u1,v1) and (u2,v2). Returns nil if either
 //  coordinates are outside of the hex field. Returns nil if the hex
 //  coordinates are not adjacent.
-func (h *Grid) GetEdgePointsShared(u1, v1, u2, v2 int) []Point {
-    if !h.WithinBounds(u1, v1) {
+func (h *Grid) GetEdgePointsShared(coord1, coord2 Coords) []Point {
+    if !h.WithinBounds(coord1.U, coord1.V) {
         return nil
     }
-    if !h.WithinBounds(u2, v2) {
+    if !h.WithinBounds(coord2.U, coord2.V) {
         return nil
     }
-    var sharedIndices = EdgeIndicesShared(u1, v1, u2, v2)
+    var sharedIndices = EdgeIndicesShared(coord1, coord2)
     if sharedIndices == nil {
         return nil
     }
-    var h1 = h.GetHex(u1, v1)
+    var h1 = h.GetHex(coord1.U, coord2.V)
     return []Point{h1[sharedIndices[0]], h1[sharedIndices[1]]}
 }
 
@@ -445,7 +445,7 @@ func (h *Grid) genVertices(defaultValue Value) {
             for k := 0; k < 6; k++ {
                 if h.vertices[i][j][k] == nil {
                     var (
-                        identVertices   = VertexCoordsIdentical(VertexCoords{u, v, k})
+                        identVertices   = VerticesIdentical(VertexCoords{u, v, k})
                         coords          = VertexCoords{u, v, k}
                         value           Value
                     )
@@ -578,7 +578,7 @@ func (h *Grid) genHexagons() {
                 hex   = h.hexes[i][j]
             )
             for k := 0 ; k < 6 ; k++ {
-                var idents = VertexCoordsIdentical(VertexCoords{u, v, k})
+                var idents = VerticesIdentical(VertexCoords{u, v, k})
                 for _, id := range idents[1:] {
                     if h.WithinBounds(id.U, id.V) {
                         var joinVertices = func() {
