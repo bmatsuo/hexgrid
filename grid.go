@@ -214,17 +214,17 @@ func (h *Grid) GetHex(u, v int) *HexPoints {
 
 //  Get a pointer to the kth corner point of the hex tile at (u,v).
 //  Returns PointInf() when (u,v) is not within the bounds of h.
-func (h *Grid) GetVertexPoint(u, v, k int) Point {
-    var hex = h.GetHex(u, v)
+func (h *Grid) GetVertexPoint(vert VertexCoords) Point {
+    var hex = h.GetHex(vert.U, vert.V)
     if hex == nil {
         return PointInf()
     }
-    return hex[k]
+    return hex[vert.K]
 }
 
 //  Determine if (u1,v1,k1) and (u2,v2,k2) reference the same point.
 func (h *Grid) VerticesAreIdentical(vert1, vert2 VertexCoords) bool {
-    var identVertices = h.GetVerticesIdentical(vert1)
+    var identVertices = h.GetVertexCoordsIdentical(vert1)
     if identVertices == nil {
         panic("nilident")
     }
@@ -239,7 +239,7 @@ func (h *Grid) VerticesAreIdentical(vert1, vert2 VertexCoords) bool {
 //  Get coordinates of hex vertices in the field incident to vertex (u,v,k).
 //  Returns a slice of vertex coordinates (slices of 3 ints), the first of
 //  which being []int{u, v, k}. See also, VerticesAreIdentical.
-func (h *Grid) GetVerticesIdentical(vert VertexCoords) []VertexCoords {
+func (h *Grid) GetVertexCoordsIdentical(vert VertexCoords) []VertexCoords {
     var adjC = make([]VertexCoords, 1, 3)
     adjC[0] = vert
 
@@ -269,15 +269,15 @@ func (h *Grid) GetVerticesIdentical(vert VertexCoords) []VertexCoords {
 }
 
 //  Get the index of the vertex clockwise of vertex k.
-func (h *Grid) GetVertexAdjacentClockwise(k int) int {
+func (h *Grid) GetVertexIndexClockwise(k int) int {
     return (k + 5) % 6
 }
 //  Get the index of the vertex counter-clockwise of vertex k.
-func (h *Grid) GetVertexAdjacentCounterClockwise(k int) int {
+func (h *Grid) GetVertexIndexCounterClockwise(k int) int {
     return (k + 1) % 6
 }
 //  This is untested.
-func (h *Grid) GetVertexAdjacentEdge(vert VertexCoords, edge EdgeCoords) VertexCoords {
+func (h *Grid) GetVertexCoordsAdjacentByEdge(vert VertexCoords, edge EdgeCoords) VertexCoords {
     v1, v2 := edge.Ends()
     if h.VerticesAreIdentical(vert, v1) {
         return v2
@@ -286,17 +286,21 @@ func (h *Grid) GetVertexAdjacentEdge(vert VertexCoords, edge EdgeCoords) VertexC
     }
     return VertexCoords{}
 }
+func (h *Grid) GetVertexAdjacentByEdge(vert VertexCoords, edge EdgeCoords) *Vertex {
+    var coords = h.GetVertexCoordsAdjacentByEdge(vert, edge)
+    return h.GetVertex(coords.U, coords.V, coords.K)
+}
 
 //  Get a list of unique vertices adjacent to (u,v,k).
 //  See also, VerticesAreIdentical.
 func (h *Grid) GetVerticesAdjacent(vert VertexCoords) [][]int {
-    var identVerts = h.GetVerticesIdentical(vert)
+    var identVerts = h.GetVertexCoordsIdentical(vert)
     if identVerts == nil {
         return nil
     }
     var adjVerts = make([][]int, len(identVerts))
     for i, vert := range identVerts {
-        adjVerts[i] = []int{vert.U, vert.V, h.GetVertexAdjacentClockwise(vert.K)}
+        adjVerts[i] = []int{vert.U, vert.V, h.GetVertexIndexClockwise(vert.K)}
     }
     return adjVerts
 }
@@ -309,7 +313,7 @@ func (h *Grid) GetHexIncident(vert VertexCoords) []*HexPoints {
     if hex == nil {
         return nil
     }
-    var adjC = h.GetVerticesIdentical(vert)
+    var adjC = h.GetVertexCoordsIdentical(vert)
     var adj = make([]*HexPoints, 0, len(adjC))
     for _, coords := range adjC {
         var (
@@ -569,8 +573,8 @@ func (h *Grid) GetEdgeCoordsSharedByVertices(vert1, vert2 VertexCoords) EdgeCoor
         return EdgeCoords{u1, v1, k1, k2}
     }
     var (
-        identVerts1 = h.GetVerticesIdentical(vert1)
-        identVerts2 = h.GetVerticesIdentical(vert2)
+        identVerts1 = h.GetVertexCoordsIdentical(vert1)
+        identVerts2 = h.GetVertexCoordsIdentical(vert2)
     )
     if identVerts1 == nil || identVerts2 == nil {
         panic("nilident")
@@ -586,7 +590,7 @@ func (h *Grid) GetEdgeCoordsSharedByVertices(vert1, vert2 VertexCoords) EdgeCoor
             if h.sameTile(u1, v1, u2, v2) {
                 return EdgeCoords{u1, v1, k1, k2}
             }
-            var edge = h.SharedEdgeIndices(u1, v1, u2, v2)
+            var edge = h.GetEdgeIndicesShared(u1, v1, u2, v2)
             if edge != nil {
                 return EdgeCoords{u1, v1, edge[0], edge[1]}
             }
@@ -604,8 +608,8 @@ func (h *Grid) GetEdgeSharedByVertices(vert1, vert2 VertexCoords) *Edge {
 //  between the hex tile at (u1,v1) that is alse in tile
 //  (u2,v2). Returns nil if the hex coordinates are not
 //  adjacent.
-func (h *Grid) SharedEdge(u1, v1, u2, v2 int) *Edge {
-    var indices = h.SharedEdgeIndices(u1, v1, u2, v2)
+func (h *Grid) GetEdgeShared(u1, v1, u2, v2 int) *Edge {
+    var indices = h.GetEdgeIndicesShared(u1, v1, u2, v2)
     if indices == nil {
         return nil
     }
@@ -615,7 +619,7 @@ func (h *Grid) SharedEdge(u1, v1, u2, v2 int) *Edge {
 //  Function for determining the vertex indices of an edge in
 //  the hex tile at (u1,v1) that is alse in tile (u2,v2).
 //  Returns nil if the hex coordinates are not adjacent.
-func (h *Grid) SharedEdgeIndices(u1, v1, u2, v2 int) []int {
+func (h *Grid) GetEdgeIndicesShared(u1, v1, u2, v2 int) []int {
     var (
         adjDir = h.HexAdjacency(u1, v1, u2, v2)
         tmpHex = HexPoints{}
@@ -630,14 +634,14 @@ func (h *Grid) SharedEdgeIndices(u1, v1, u2, v2 int) []int {
 //  between hex tiles (u1,v1) and (u2,v2). Returns nil if either
 //  coordinates are outside of the hex field. Returns nil if the hex
 //  coordinates are not adjacent.
-func (h *Grid) SharedEdgePoints(u1, v1, u2, v2 int) []Point {
+func (h *Grid) GetEdgePointsShared(u1, v1, u2, v2 int) []Point {
     if !h.WithinBounds(u1, v1) {
         return nil
     }
     if !h.WithinBounds(u2, v2) {
         return nil
     }
-    var sharedIndices = h.SharedEdgeIndices(u1, v1, u2, v2)
+    var sharedIndices = h.GetEdgeIndicesShared(u1, v1, u2, v2)
     if sharedIndices == nil {
         return nil
     }
@@ -690,7 +694,7 @@ func (h *Grid) genVertices(defaultValue Value) {
             for k := 0; k < 6; k++ {
                 if h.vertices[i][j][k] == nil {
                     var (
-                        identVertices   = h.GetVerticesIdentical(VertexCoords{u, v, k})
+                        identVertices   = h.GetVertexCoordsIdentical(VertexCoords{u, v, k})
                         coords          = VertexCoords{u, v, k}
                         value           Value
                     )
