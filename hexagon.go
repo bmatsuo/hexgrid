@@ -24,6 +24,25 @@ const (
     W
     NilDirection
 )
+var (
+    hexDirections    = []HexDirection{S, SE, E, NE, N, NW, W, SW}
+    vertexDirections = []HexDirection{SE, E, NE, NW, W, SW}
+    edgeDirections   = []HexDirection{S, SE, NE, N, NW, SW}
+)
+func copyDirections(ds []HexDirection) []HexDirection {
+    var dsCopy = make([]HexDirection, len(ds))
+    copy(dsCopy, ds)
+    return dsCopy
+}
+func HexDirections() []HexDirection {
+    return copyDirections(hexDirections)
+}
+func VertexDirections() []HexDirection {
+    return copyDirections(vertexDirections)
+}
+func EdgeDirections() []HexDirection {
+    return copyDirections(edgeDirections)
+}
 
 func (dir HexDirection) Inverse() HexDirection {
     switch dir {
@@ -45,6 +64,16 @@ func (dir HexDirection) Inverse() HexDirection {
         return SE
     }
     return NilDirection
+}
+
+//  Get the index of the vertex clockwise of vertex k.
+func HexVertexIndexClockwise(k int) int {
+    return (k + 5) % 6
+}
+
+//  Get the index of the vertex counter-clockwise of vertex k.
+func HexVertexIndexCounterClockwise(k int) int {
+    return (k + 1) % 6
 }
 
 //  Return the direction of vertex k relative to the center of a hexagon.

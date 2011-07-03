@@ -46,7 +46,7 @@ func pointInList(p Point, points []Point) bool {
 func hexAsString(h *Grid, i, j int, T *testing.T) string {
     var (
         sbuff = new([6]string)
-        hex   = h.GetHex(i, j)
+        hex   = h.GetHex(Coords{i, j})
     )
     if hex == nil {
         T.Errorf("Nil tile: n: %d i: %d j:%d", h.Size(), i, j)
@@ -107,7 +107,10 @@ func testAllocation(expected, length, capacity int, T *testing.T, ) {
 func TestHexPoints(T *testing.T) {
     for u := hfield.ColMin() ; u <= hfield.ColMax() ; u++ {
         for v := hfield.RowMin() ; v <= hfield.RowMax() ; v++ {
-            var hex = hfield.GetHex(u, v)
+            var (
+                c   = Coords{u, v}
+                hex = hfield.GetHex(c)
+            )
             if hex == nil {
                 T.Errorf("Nil *HexPoints encountered at %d %d", u, v)
                 continue

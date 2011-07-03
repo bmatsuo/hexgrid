@@ -143,6 +143,9 @@ var(
 func NilEdgeCoords() EdgeCoords {
     return nilEdgeCoords
 }
+func (e EdgeCoords) Coords() Coords {
+    return Coords{e.U, e.V}
+}
 //  Returns true if and only if e and e2 have exactly the same fields.
 func (e EdgeCoords) Equals(e2 EdgeCoords) bool {
     return e.U == e2.U && e.V == e2.V && e.K == e2.K && e.L == e2.L
@@ -398,9 +401,9 @@ func (vert VertexCoords) EdgeShared(vert2 VertexCoords) EdgeCoords {
             if ident1.Coords().Equals(ident2.Coords()) {
                 return EdgeCoords{ident1.U, ident1.V, ident1.K, ident2.K}
             }
-            var edge = ident1.Coords().EdgesShared(ident2.Coords())
-            if edge != nil {
-                return EdgeCoords{ident1.U, ident1.V, edge[0], edge[1]}
+            var ec = ident1.Coords().EdgeShared(ident2.Coords())
+            if ec.IsNil() {
+                return ec
             }
         }
     }
@@ -411,13 +414,13 @@ func (vert VertexCoords) EdgeShared(vert2 VertexCoords) EdgeCoords {
 //  Function for determining the vertex indices of an edge in
 //  the hex tile at (u1,v1) that is alse in tile (u2,v2).
 //  Returns nil if the hex coordinates are not adjacent.
-func (coord Coords) EdgesShared(other Coords) []int {
+func (coord Coords) EdgeShared(other Coords) EdgeCoords {
     var adjDir = coord.Adjacency(other)
     if adjDir == NilDirection {
-        return nil
+        return nilEdgeCoords
     }
-
-    return HexEdgeIndices(adjDir)
+    var vindices = HexEdgeIndices(adjDir)
+    return EdgeCoords{coord.U, coord.V, vindices[0], vindices[1]}
 }
 
 //  This method needs testing.
