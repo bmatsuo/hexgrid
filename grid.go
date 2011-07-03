@@ -248,11 +248,7 @@ func (h *Grid) GetVertexPoint(vc VertexCoords) Point {
     return hex[inbounds.K]
 }
 
-func (h *Grid) GetVertexAdjacentByEdge(vert VertexCoords, edge EdgeCoords) *Vertex {
-    var coords = vert.AdjacentByEdge(edge)
-    return h.GetVertex(coords)
-}
-
+//  This methods should be replaced.
 func (h *Grid) GetVertices(coords Coords) []*Vertex {
     if !h.WithinBounds(coords) {
         return nil
@@ -264,58 +260,6 @@ func (h *Grid) GetVertices(coords Coords) []*Vertex {
     return vertices
 }
 
-//  This method may be unnecessary.
-//  Get hex tiles incident with the kth corner point of hex at (u,v).
-//  Returns nil when (u,v) is not within the bounds of h.
-//  Otherwise, a slice of *HexPoints is returned w/ hex tile (u,v) at index 0.
-func (h *Grid) GetHexIncident(vert VertexCoords) []*HexPoints {
-    if !h.WithinBounds(vert.Coords()) {
-        return nil
-    }
-    var adjC = vert.Incidents()
-    var adj = make([]*HexPoints, 0, len(adjC))
-    for _, coords := range adjC {
-        var hexAdj = h.GetHex(coords)
-        if hexAdj == nil {
-            continue
-        }
-        adj = append(adj, hexAdj)
-    }
-
-    return adj
-}
-//  This method may be unnecessary
-func (h *Grid) GetTilesIncident(vert VertexCoords) []*Tile {
-    var adjC = vert.Incidents()
-    var adj = make([]*Tile, 0, len(adjC))
-    for _, coords := range adjC {
-        var tileAdj = h.GetTile(coords)
-        if tileAdj == nil {
-            continue
-        }
-        adj = append(adj, tileAdj)
-    }
-
-    return adj
-}
-//  This method may be unnecessary
-func (h *Grid) GetTilesSharedByCoords(vert1, vert2 VertexCoords) []*Tile {
-    var (
-        shared = vert1.CoordsShared(vert2)
-        tiles = make([]*Tile, 0, len(shared))
-    )
-    for _, coord := range shared {
-        var tile = h.GetTile(coord)
-        if tile == nil {
-            continue
-        }
-        tiles = append(tiles, tile)
-    }
-    if len(tiles) == 0 {
-        return nil
-    }
-    return tiles
-}
 
 /* Internal methods for computing hexagon positions. */
 func (h *Grid) horizontalSpacing() float64 {
@@ -340,66 +284,6 @@ func (h *Grid) TileCenter(c Coords) Point {
     return Point{centerX, centerY}
 }
 
-//  This method may be unnecessary.
-//  Return a slice of hexagons adjacent to the hex tile at coordinates (u, v).
-//  Only hex tiles in the Grid are returned.
-//  If (u,v) is not in the Grid, a nil slice is returned.
-func (h *Grid) GetHexAdjacent(u, v int, dir HexDirection) []*HexPoints {
-    var c = Coords{u,v}
-    if !h.WithinBounds(c) {
-        return nil
-    }
-    var adjC = c.Adjacents(dir)
-    if adjC == nil {
-        panic("niladjacency")
-    }
-    var adj = make([]*HexPoints, 0, len(adjC))
-    for _, coords := range adjC {
-        if !h.WithinBounds(coords) {
-            continue
-        }
-        adj = append(adj, h.GetHex(coords))
-    }
-    return adj
-}
-
-//  This method looks unnecessary
-func (h *Grid) GetEdgeSharedByVertices(vert1, vert2 VertexCoords) *Edge {
-    return h.GetEdge(vert1.EdgeShared(vert2))
-}
-
-//  This method looks unnecessary.
-//  Function for determining the edge container if any,
-//  between the hex tile at (u1,v1) that is alse in tile
-//  (u2,v2). Returns nil if the hex coordinates are not
-//  adjacent.
-func (h *Grid) GetEdgeShared(coord1, coord2 Coords) *Edge {
-    var ec = coord1.EdgeShared(coord2)
-    if ec.IsNil() {
-        return nil
-    }
-    return h.GetEdge(ec)
-}
-
-//  This method may be unnecessary.
-//  Function for determining the actual points determining any shared edge
-//  between hex tiles (u1,v1) and (u2,v2). Returns nil if either
-//  coordinates are outside of the hex field. Returns nil if the hex
-//  coordinates are not adjacent.
-func (h *Grid) GetEdgePointsShared(coord1, coord2 Coords) []Point {
-    if !h.WithinBounds(coord1) {
-        return nil
-    }
-    if !h.WithinBounds(coord2) {
-        return nil
-    }
-    var ec = coord1.EdgeShared(coord2)
-    if ec.IsNil() {
-        return nil
-    }
-    var h1 = h.GetHex(coord1)
-    return []Point{h1[ec.K], h1[ec.L]}
-}
 
 func (h *Grid) genTiles(defaultValue Value) {
     h.t = make([]Tile, 0, h.expectedNumTiles())
