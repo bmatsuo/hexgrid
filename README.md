@@ -1,4 +1,4 @@
-*hexgrid version 1.1_5*
+*hexgrid version 1.2_1*
 
 About hexgrid
 =============
