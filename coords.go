@@ -15,19 +15,81 @@ import (
 type Coords struct {
     U, V int
 }
+// The coordinates have the same U and V fields.
 func (coords Coords) Equals(other Coords) bool {
     return coords.U == other.U && coords.V == other.V
 }
-//	The vertices of c in order 0, 1, ..., 5
-func (c Coords) Vertices() []VertexCoords {
+//  Return the vertices of c in order 0, 1, ..., 5
+func (c Coords) Vertices(d HexDirection) []VertexCoords {
+    // TODO make this implementation more efficient.
+    var (
+        u = c.U
+        v = c.V
+    )
+    switch d {
+    case S:
+        return []VertexCoords{
+                VertexCoords{u, v, HexVertexIndex(SW)},
+                VertexCoords{u, v, HexVertexIndex(SE)}}
+    case SE:
+        return []VertexCoords{VertexCoords{u, v, HexVertexIndex(SE)}}
+    case E:
+        return []VertexCoords{
+                VertexCoords{u, v, HexVertexIndex(SE)},
+                VertexCoords{u, v, HexVertexIndex(NE)}}
+    case NE:
+        return []VertexCoords{VertexCoords{u, v, HexVertexIndex(NE)}}
+    case N:
+        return []VertexCoords{
+                VertexCoords{u, v, HexVertexIndex(NE)},
+                VertexCoords{u, v, HexVertexIndex(NW)}}
+    case NW:
+        return []VertexCoords{VertexCoords{u, v, HexVertexIndex(NW)}}
+    case W:
+        return []VertexCoords{
+                VertexCoords{u, v, HexVertexIndex(NW)},
+                VertexCoords{u, v, HexVertexIndex(SW)}}
+    case SW:
+        return []VertexCoords{VertexCoords{u, v, HexVertexIndex(SW)}}
+    }
+    // Return all vertices
     var vertices = make([]VertexCoords, 6)
     for k := 0 ; k < 6 ; k++ {
         vertices[k] = VertexCoords{c.U, c.V, k}
     }
 	return vertices
 }
-//	The vertices of c in order (0,1) (1,2), ..., (5,0)
-func (c Coords) Edges() []EdgeCoords {
+//  The vertices of c in order (0,1) (1,2), ..., (5,0)
+func (c Coords) Edges(d HexDirection) []EdgeCoords {
+    // TODO make this implementation more efficient.
+    var (
+        u = c.U
+        v = c.V
+    )
+    switch d {
+    case S:
+        return []EdgeCoords{
+                EdgeCoords{u, v, HexVertexIndex(SW), HexVertexIndex(SE)} }
+    case SE:
+        return []EdgeCoords{EdgeCoords{u, v, HexVertexIndex(SE), HexVertexIndex(E)}}
+    case E:
+        return []EdgeCoords{
+                EdgeCoords{u, v, HexVertexIndex(SE), HexVertexIndex(E)},
+                EdgeCoords{u, v, HexVertexIndex(E), HexVertexIndex(NE)} }
+    case NE:
+        return []EdgeCoords{EdgeCoords{u, v, HexVertexIndex(E), HexVertexIndex(NE)}}
+    case N:
+        return []EdgeCoords{
+                EdgeCoords{u, v, HexVertexIndex(NE), HexVertexIndex(NW)}}
+    case NW:
+        return []EdgeCoords{EdgeCoords{u, v, HexVertexIndex(NW), HexVertexIndex(W)}}
+    case W:
+        return []EdgeCoords{
+                EdgeCoords{u, v, HexVertexIndex(NW), HexVertexIndex(W)},
+                EdgeCoords{u, v, HexVertexIndex(W), HexVertexIndex(SW)} }
+    case SW:
+        return []EdgeCoords{EdgeCoords{u, v, HexVertexIndex(W), HexVertexIndex(SW)}}
+    }
     var edges = make([]EdgeCoords, 6)
     for k := 0 ; k < 6 ; k++ {
         edges[k] = EdgeCoords{c.U, c.V, k, (k+1)%6}

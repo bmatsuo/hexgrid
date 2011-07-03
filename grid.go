@@ -136,7 +136,7 @@ func (h *Grid) GetEdges(coords Coords) []*Edge {
         return nil
     }
     var edges = make([]*Edge, 6)
-    for k, e := range coords.Edges() {
+    for k, e := range coords.Edges(NilDirection) {
         edges[k] = h.GetEdge(e.U, e.V, e.K, e.L)
     }
     return edges
@@ -257,7 +257,7 @@ func (h *Grid) GetVertices(coords Coords) []*Vertex {
         return nil
     }
     var vertices = make([]*Vertex, 6)
-	for k, v := range coords.Vertices() {
+	for k, v := range coords.Vertices(NilDirection) {
         vertices[k] = h.GetVertex(v.U, v.V, k)
     }
     return vertices
