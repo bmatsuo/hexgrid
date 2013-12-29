@@ -200,7 +200,7 @@ func (e EdgeCoords) Ends() (v1, v2 VertexCoords) {
 }
 
 func columnIsHigh(u int) bool {
-    var uOdd = uint(math.Fabs(float64(u)))%2 == 1
+    var uOdd = uint(math.Abs(float64(u)))%2 == 1
     return uOdd
 }
 func sameTile(u1, v1, u2, v2 int) bool {
