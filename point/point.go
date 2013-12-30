@@ -15,8 +15,21 @@ var PointApproximationGap = 1.0e-12
 //  A generic 2-dimensional point.
 type Point struct{ X, Y float64 }
 
+func E0() Point {
+	return Point{1, 0}
+}
+
+func E1() Point {
+	return Point{0, 1}
+}
+
+// The point (0, 0)
+func Zero() Point {
+	return Point{}
+}
+
 //  A point at (infinity, infinity). See also, PointIsInf.
-func PointInf() Point {
+func Inf() Point {
 	var inf = math.Inf(1)
 	return Point{inf, inf}
 }
@@ -57,7 +70,8 @@ func (p Point) Add(p2 Point) Point {
 func (p Point) Rot(theta float64) Point {
 	return Point{
 		p.X*math.Cos(theta) - p.Y*math.Sin(theta),
-		p.Y*math.Cos(theta) + p.X*math.Sin(theta)}
+		p.Y*math.Cos(theta) + p.X*math.Sin(theta),
+	}
 }
 func (p Point) RotAround(theta float64, center Point) Point {
 	var (

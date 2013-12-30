@@ -251,13 +251,13 @@ func (h *Grid) getVCWithinBounds(vc VertexCoords) VertexCoords {
 }
 
 //  Get a pointer to the kth corner point of the hex tile at (u,v).
-//  Returns PointInf() when no vertex identical to vc is within the
+//  Returns point.Inf() when no vertex identical to vc is within the
 //  bounds of h.
 func (h *Grid) GetVertexPoint(vc VertexCoords) point.Point {
 	var inbounds = h.getVCWithinBounds(vc)
 	var hex = h.GetHex(inbounds.Coords())
 	if hex == nil {
-		return point.PointInf()
+		return point.Inf()
 	}
 	return hex[inbounds.K]
 }

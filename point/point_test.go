@@ -6,6 +6,7 @@ Created: Wed Jun 29 01:07:05 PDT 2011
 package point
 
 import (
+	"image"
 	"math"
 	"testing"
 )
@@ -23,23 +24,30 @@ func approx(t *testing.T, desc string, expect, value, epsilon float64) {
 	}
 }
 
+func TestInf(T *testing.T) {
+	if !Inf().IsInf() {
+		T.Errorf("!Inf().IsInf()")
+	}
+	if Zero().IsInf() {
+		T.Errorf("Zero().IsInf()")
+	}
+}
+
 func TestDotProduct(T *testing.T) {
 	var (
 		p1 = Point{-1.23456, 7.890987}
 		p2 = Point{7.890987, 1.23456}
 	)
 	approx(T, "orthogonal dot product", p1.Dot(p2), 0, E)
+	approx(T, "orthogonal dot product", p1.Scale(10).Dot(p2), 0, e)
 	approx(T, "symmetric dot product", p2.Dot(p1), 0, E)
 	approx(T, "parallel dot product", p1.Dot(p1), math.Pow(p1.Norm(), 2), e)
+	approx(T, "zero dot product", Zero().Dot(Zero()), 0, e)
 }
 
 func TestNorm(T *testing.T) {
-	var (
-		e1 = Point{1, 0}
-		e2 = Point{0, -1}
-	)
-	approx(T, "e1 norm", e1.Norm(), 1, E)
-	approx(T, "-e2 norm", e2.Norm(), 1, E)
+	approx(T, "e0 norm", E0().Norm(), 1, E)
+	approx(T, "-e1 norm", E1().Scale(-1).Norm(), 1, E)
 }
 
 func TestSimpleRotation(T *testing.T) {
@@ -76,4 +84,11 @@ func TestAdvRotation(T *testing.T) {
 	}
 	approx(T, "90° rotation dot product", dot1, 0, e)
 	approx(T, "180° rotation dot product", dot2, 0, E)
+}
+
+func TestImagePoint(T *testing.T) {
+	rect := image.Rectangle{Max: image.Point{10, 10}}
+	imgpt := Zero().ImagePoint(rect)
+	approx(T, "zero rect image point X", float64(imgpt.X), 0, 0)
+	approx(T, "zero rect image point Y", float64(imgpt.Y), 10, 0)
 }
