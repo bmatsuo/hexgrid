@@ -1,5 +1,3 @@
-*hexgrid version 1.2_1*
-
 About hexgrid
 =============
 
@@ -11,34 +9,14 @@ Hex, Settlers of Catan, and Sid Meier's Civilization 5.
 Documentation
 =============
 
-Installation
-------------
+**NOTE:** The public API is in flux and should be used with caution.
 
-Easiest installation is through goinstall
-
-    goinstall github.com/bmatsuo/hexgrid
-
-Or, alternatively, you can clone the repository and install locally.
-
-    git clone git://github.com/bmatsuo/hexgrid.git
-    cd hexgrid
-    gomake install
-
-General Documentation
----------------------
-
-The best way to view the documentation (if you installed using goinstall)
-is by running a godoc http server.
-
-    godoc -http=:6060
-
-Then, in a web browser, visit the url
-http://localhost:6060/pkg/github.com/bmatsuo/hexgrid/
+On [godoc.org](http://godoc.org/github.com/bmatsuo/hexgrid)
 
 Author
 ======
 
-**Bryan Matsuo** <bmatsuo@soe.ucsc.edu>
+**Bryan Matsuo**
 
 Copyright & License
 ===================
