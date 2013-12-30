@@ -11,19 +11,17 @@ Conceptually grids are oriented such that they are flat on one side (opposed
 to standing on point). This grounding gives the word 'direction' meaning.
 Cardinal directions are used to reference the incident objects of a hexagon.
 
-	     1 _ 12 _ 2
+	     4 _ 34 _ 3
 	    /          \
-	  61            23
+	  45            23
 	 /                \
-	6       HEXA       3
+	5       HEXA       2
 	 \                /
-	  56            34
-	    \5 _ 45 _ 4/
+	  50            12 
+	    \0 _ 01 _ 1/
 
-Using the above HEXA as an example, its N(orth) edge is 12, E(ast) vertex is 3,
+Using the above HEXA as an example, its N(orth) edge is 34, E(ast) vertex is 2,
 NE edge is 23, etc.
-
-FIXME HEXA's vertex numbering is not right?
 */
 package hexgrid
 
