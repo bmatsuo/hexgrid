@@ -14,17 +14,17 @@ import (
 //  Discrete hex coordinates consist of a horizontal U axis and a vertical
 //  V axis. Each axis has range (-inf,inf) in theory. In practice, Grid
 //  objects limit the accessible hex tiles.
-type Coords struct{ U, V int }
+type Hex struct{ U, V int }
 
 // The coordinates have the same U and V fields.
-func (coords Coords) Equals(other Coords) bool {
+func (coords Hex) Equals(other Hex) bool {
 	return coords.U == other.U && coords.V == other.V
 }
 
 // Vertices farthest in the specified direction. If d is hex.NilDirection all
 // coordinates vertices are returned, otherwise either one or two vertices
 // are returned. The vertices are returned in increasing order (0, ..., 5).
-func (c Coords) Vertices(d hex.Direction) []VertexCoords {
+func (c Hex) Vertices(d hex.Direction) []Vertex {
 	var vertices []int
 	if d < hex.NilDirection {
 		vertices = directionVertices[d]
@@ -32,9 +32,9 @@ func (c Coords) Vertices(d hex.Direction) []VertexCoords {
 		vertices = directionAllVertices
 	}
 
-	vcs := make([]VertexCoords, len(vertices))
+	vcs := make([]Vertex, len(vertices))
 	for i := range vertices {
-		vcs[i] = VertexCoords{c.U, c.V, vertices[i]}
+		vcs[i] = Vertex{c.U, c.V, vertices[i]}
 	}
 
 	return vcs
@@ -74,7 +74,7 @@ var directionVertices = [][]int{
 }
 
 // See Vertices.
-func (c Coords) Edges(d hex.Direction) []EdgeCoords {
+func (c Hex) Edges(d hex.Direction) []Edge {
 	var coords []vertexPair
 	if d < hex.NilDirection {
 		coords = directionEdges[d]
@@ -82,9 +82,9 @@ func (c Coords) Edges(d hex.Direction) []EdgeCoords {
 		coords = directionAllEdges
 	}
 
-	var edges = make([]EdgeCoords, 0, 6)
+	var edges = make([]Edge, 0, 6)
 	for _, e := range coords {
-		edges = append(edges, EdgeCoords{c.U, c.V, e.v1, e.v2})
+		edges = append(edges, Edge{c.U, c.V, e.v1, e.v2})
 	}
 	return edges
 }
@@ -131,22 +131,22 @@ var directionEdges = [][]vertexPair{
 //  Vertices in the grid are indexed by hex coordinates paired with a
 //  vertex index K. Vertex indices range from 0 to 5 and begin in the
 //  south-west corner of the vertex. See also, hex.Direction.
-type VertexCoords struct {
+type Vertex struct {
 	U, V, K int
 }
 
-//  Create a Coords object from a VertexCoords object.
-func (vc VertexCoords) Coords() Coords {
-	return Coords{vc.U, vc.V}
+//  Create a Hex object from a Vertex object.
+func (vc Vertex) Hex() Hex {
+	return Hex{vc.U, vc.V}
 }
 
 //  Returns true if  only if the U, V and K fields of vc and other are equal.
-func (vc VertexCoords) Equals(other VertexCoords) bool {
+func (vc Vertex) Equals(other Vertex) bool {
 	return vc.U == other.U && vc.V == other.V && vc.K == other.K
 }
 
 //  Returns true if (u1,v1,k1) and (u2,v2,k2) reference the same vertex.
-func (vc VertexCoords) IsIdentical(other VertexCoords) bool {
+func (vc Vertex) IsIdentical(other Vertex) bool {
 	var identVertices = vc.IdenticalVertices()
 	if identVertices == nil {
 		panic("nilident")
@@ -158,41 +158,41 @@ func (vc VertexCoords) IsIdentical(other VertexCoords) bool {
 	}
 	return false
 }
-func (vc VertexCoords) Clockwise() VertexCoords {
-	return VertexCoords{vc.U, vc.V, hex.HexVertexIndexClockwise(vc.K)}
+func (vc Vertex) Clockwise() Vertex {
+	return Vertex{vc.U, vc.V, hex.HexVertexIndexClockwise(vc.K)}
 }
-func (vc VertexCoords) CounterClockwise() VertexCoords {
-	return VertexCoords{vc.U, vc.V, hex.HexVertexIndexCounterClockwise(vc.K)}
+func (vc Vertex) CounterClockwise() Vertex {
+	return Vertex{vc.U, vc.V, hex.HexVertexIndexCounterClockwise(vc.K)}
 }
 
 //  Edges in the grid are index by hex coordinates along with a pair of
 //  vertex indices K and L.
-type EdgeCoords struct {
+type Edge struct {
 	U, V, K, L int
 }
 
 var (
-	nilEdgeCoords = EdgeCoords{}
+	nilEdge = Edge{}
 )
 
-//  The zero value of EdgeCoords, which does not represent a real edge.
-func NilEdgeCoords() EdgeCoords {
-	return nilEdgeCoords
+//  The zero value of Edge, which does not represent a real edge.
+func NilEdge() Edge {
+	return nilEdge
 }
-func (e EdgeCoords) Coords() Coords {
-	return Coords{e.U, e.V}
+func (e Edge) Hex() Hex {
+	return Hex{e.U, e.V}
 }
 
 //  Returns true if and only if e and e2 have exactly the same fields.
-func (e EdgeCoords) Equals(e2 EdgeCoords) bool {
+func (e Edge) Equals(e2 Edge) bool {
 	return e.U == e2.U && e.V == e2.V && e.K == e2.K && e.L == e2.L
 }
-func (e EdgeCoords) reverse() EdgeCoords {
-	return EdgeCoords{U: e.U, V: e.V, K: e.L, L: e.L}
+func (e Edge) reverse() Edge {
+	return Edge{U: e.U, V: e.V, K: e.L, L: e.L}
 }
 
 //  Returns true if and only if e and e2 reference the same edge.
-func (e EdgeCoords) IsIdentical(e2 EdgeCoords) bool {
+func (e Edge) IsIdentical(e2 Edge) bool {
 	var (
 		adjc  = e.Incidents()
 		adjc2 = e2.Incidents()
@@ -206,13 +206,13 @@ func (e EdgeCoords) IsIdentical(e2 EdgeCoords) bool {
 }
 
 //	Returns coordinates of edges sharing one endpoint with e.
-func (e EdgeCoords) Adjacents() []EdgeCoords {
+func (e Edge) Adjacents() []Edge {
 	if e.IsNil() {
 		return nil
 	}
 	var (
 		v1, v2 = e.Ends()
-		adj    = make([]EdgeCoords, 0, 4)
+		adj    = make([]Edge, 0, 4)
 	)
 	for _, e1 := range v1.Edges() {
 		if !e.IsIdentical(e1) {
@@ -227,15 +227,15 @@ func (e EdgeCoords) Adjacents() []EdgeCoords {
 	return adj
 }
 
-//  Test if an edge is NilEdge. Synonymn for e.Equals(NilEdgeCoords())
-func (e EdgeCoords) IsNil() bool {
-	return e.Equals(nilEdgeCoords)
+//  Test if an edge is NilEdge. Synonymn for e.Equals(NilEdge())
+func (e Edge) IsNil() bool {
+	return e.Equals(nilEdge)
 }
 
 //  Retrieve the coordinates of e's incident vertices.
-func (e EdgeCoords) Ends() (v1, v2 VertexCoords) {
-	v1 = VertexCoords{e.U, e.V, e.K}
-	v2 = VertexCoords{e.U, e.V, e.L}
+func (e Edge) Ends() (v1, v2 Vertex) {
+	v1 = Vertex{e.U, e.V, e.K}
+	v2 = Vertex{e.U, e.V, e.L}
 	return v1, v2
 }
 
@@ -244,12 +244,12 @@ func ColumnIsHigh(u int) bool {
 	return uOdd
 }
 func sameTile(u1, v1, u2, v2 int) bool {
-	return Coords{u1, v1}.Equals(Coords{u2, v2})
+	return Hex{u1, v1}.Equals(Hex{u2, v2})
 }
 
 //  If hex tiles (u1,v1) and (u2,v2) are adjacent, the direction of (u2,v2)
 //  from (u1,v1) is returned. Otherwise hex.NilDirection is returned.
-func (c Coords) Adjacency(adj Coords) hex.Direction {
+func (c Hex) Adjacency(adj Hex) hex.Direction {
 	var (
 		deltaU = adj.U - c.U
 		deltaV = adj.U - c.U
@@ -299,7 +299,7 @@ func (c Coords) Adjacency(adj Coords) hex.Direction {
 }
 
 //  Returns true if and only if c is adjacent to adj
-func (c Coords) IsAdjacent(adj Coords) bool {
+func (c Hex) IsAdjacent(adj Hex) bool {
 	return c.Adjacency(adj) != hex.NilDirection
 }
 
@@ -309,109 +309,109 @@ func (c Coords) IsAdjacent(adj Coords) bool {
 //  are returned in that order.
 //  If NilDirection is suppied, then coordinates for all adjacent hexagons
 //  are returned in the order N, NE, SE, S, SW, NW.
-func (coords Coords) Adjacents(dir hex.Direction) []Coords {
+func (coords Hex) Adjacents(dir hex.Direction) []Hex {
 	var (
 		u = coords.U
 		v = coords.V
 	)
 	switch dir {
 	case hex.N:
-		return []Coords{Coords{u, v + 1}}
+		return []Hex{Hex{u, v + 1}}
 	case hex.S:
-		return []Coords{Coords{u, v - 1}}
+		return []Hex{Hex{u, v - 1}}
 	case hex.E:
-		var adjE = make([]Coords, 2)
+		var adjE = make([]Hex, 2)
 		if ColumnIsHigh(u) {
-			adjE[0] = Coords{u - 1, v + 1}
-			adjE[1] = Coords{u - 1, v}
+			adjE[0] = Hex{u - 1, v + 1}
+			adjE[1] = Hex{u - 1, v}
 		} else {
-			adjE[0] = Coords{u - 1, v}
-			adjE[1] = Coords{u - 1, v - 1}
+			adjE[0] = Hex{u - 1, v}
+			adjE[1] = Hex{u - 1, v - 1}
 		}
 		return adjE
 	case hex.W:
-		var adjW = make([]Coords, 2)
+		var adjW = make([]Hex, 2)
 		if ColumnIsHigh(u) {
-			adjW[0] = Coords{u + 1, v + 1}
-			adjW[1] = Coords{u + 1, v}
+			adjW[0] = Hex{u + 1, v + 1}
+			adjW[1] = Hex{u + 1, v}
 		} else {
-			adjW[0] = Coords{u + 1, v}
-			adjW[1] = Coords{u + 1, v - 1}
+			adjW[0] = Hex{u + 1, v}
+			adjW[1] = Hex{u + 1, v - 1}
 		}
 		return adjW
 	case hex.NE:
 		if ColumnIsHigh(u) {
-			return []Coords{Coords{u - 1, v + 1}}
+			return []Hex{Hex{u - 1, v + 1}}
 		}
-		return []Coords{Coords{u - 1, v}}
+		return []Hex{Hex{u - 1, v}}
 	case hex.NW:
 		if ColumnIsHigh(u) {
-			return []Coords{Coords{u + 1, v + 1}}
+			return []Hex{Hex{u + 1, v + 1}}
 		}
-		return []Coords{Coords{u + 1, v}}
+		return []Hex{Hex{u + 1, v}}
 	case hex.SE:
 		if ColumnIsHigh(u) {
-			return []Coords{Coords{u - 1, v}}
+			return []Hex{Hex{u - 1, v}}
 		}
-		return []Coords{Coords{u - 1, v - 1}}
+		return []Hex{Hex{u - 1, v - 1}}
 	case hex.SW:
 		if ColumnIsHigh(u) {
-			return []Coords{Coords{u + 1, v}}
+			return []Hex{Hex{u + 1, v}}
 		}
-		return []Coords{Coords{u + 1, v - 1}}
+		return []Hex{Hex{u + 1, v - 1}}
 	default:
-		var adjAll = make([]Coords, 6)
+		var adjAll = make([]Hex, 6)
 		if ColumnIsHigh(u) {
-			adjAll[0] = Coords{u, v + 1}     // North
-			adjAll[1] = Coords{u - 1, v + 1} // NorthEast
-			adjAll[2] = Coords{u - 1, v}     // SouthEast
-			adjAll[3] = Coords{u, v - 1}     // South
-			adjAll[4] = Coords{u + 1, v}     // SouthWest
-			adjAll[5] = Coords{u + 1, v + 1} // NorthWest
+			adjAll[0] = Hex{u, v + 1}     // North
+			adjAll[1] = Hex{u - 1, v + 1} // NorthEast
+			adjAll[2] = Hex{u - 1, v}     // SouthEast
+			adjAll[3] = Hex{u, v - 1}     // South
+			adjAll[4] = Hex{u + 1, v}     // SouthWest
+			adjAll[5] = Hex{u + 1, v + 1} // NorthWest
 		} else {
-			adjAll[0] = Coords{u, v + 1}
-			adjAll[1] = Coords{u - 1, v}
-			adjAll[2] = Coords{u - 1, v - 1}
-			adjAll[3] = Coords{u, v - 1}
-			adjAll[4] = Coords{u + 1, v - 1}
-			adjAll[5] = Coords{u + 1, v}
+			adjAll[0] = Hex{u, v + 1}
+			adjAll[1] = Hex{u - 1, v}
+			adjAll[2] = Hex{u - 1, v - 1}
+			adjAll[3] = Hex{u, v - 1}
+			adjAll[4] = Hex{u + 1, v - 1}
+			adjAll[5] = Hex{u + 1, v}
 		}
 		return adjAll
 	}
 	return nil
 }
 
-func (vert VertexCoords) Incidents() []Coords {
+func (vert Vertex) Incidents() []Hex {
 	var (
 		adjVC = vert.IdenticalVertices()
-		adj   = make([]Coords, 0, len(adjVC))
+		adj   = make([]Hex, 0, len(adjVC))
 	)
 	for _, coords := range adjVC {
 		var (
-			adjCoords = Coords{coords.U, coords.V}
+			adjHex = Hex{coords.U, coords.V}
 		)
-		adj = append(adj, adjCoords)
+		adj = append(adj, adjHex)
 	}
 
 	return adj
 }
 
-//  The Coords of tiles which share edge e. There are exactly two such
-//  Coords for any (real) edge. Returns nil if e is NilEdgeCoords()
-func (e EdgeCoords) Incidents() []Coords {
+//  The Hex of tiles which share edge e. There are exactly two such
+//  Hex for any (real) edge. Returns nil if e is NilEdge()
+func (e Edge) Incidents() []Hex {
 	if e.IsNil() {
 		return nil
 	}
 	vert1, vert2 := e.Ends()
-	return vert1.CoordsShared(vert2)
+	return vert1.HexShared(vert2)
 }
 
-func (vert VertexCoords) CoordsShared(vert2 VertexCoords) []Coords {
+func (vert Vertex) HexShared(vert2 Vertex) []Hex {
 	var (
 		adjC1 = vert.Incidents()
 		adjC2 = vert2.Incidents()
 	)
-	var shared = make([]Coords, 0, 1)
+	var shared = make([]Hex, 0, 1)
 	for _, c1 := range adjC1 {
 		for _, c2 := range adjC2 {
 			if c1.U == c2.U && c1.V == c2.V {
@@ -422,12 +422,12 @@ func (vert VertexCoords) CoordsShared(vert2 VertexCoords) []Coords {
 	return shared
 }
 
-func (vert VertexCoords) EdgeShared(vert2 VertexCoords) EdgeCoords {
+func (vert Vertex) EdgeShared(vert2 Vertex) Edge {
 	if vert.IsIdentical(vert2) {
-		return EdgeCoords{}
+		return Edge{}
 	}
-	if vert.Coords().Equals(vert2.Coords()) {
-		return EdgeCoords{vert.U, vert.V, vert.K, vert2.K}
+	if vert.Hex().Equals(vert2.Hex()) {
+		return Edge{vert.U, vert.V, vert.K, vert2.K}
 	}
 	var (
 		identVerts1 = vert.IdenticalVertices()
@@ -438,35 +438,35 @@ func (vert VertexCoords) EdgeShared(vert2 VertexCoords) EdgeCoords {
 	}
 	for _, ident1 := range identVerts1 {
 		for _, ident2 := range identVerts2 {
-			if ident1.Coords().Equals(ident2.Coords()) {
-				return EdgeCoords{ident1.U, ident1.V, ident1.K, ident2.K}
+			if ident1.Hex().Equals(ident2.Hex()) {
+				return Edge{ident1.U, ident1.V, ident1.K, ident2.K}
 			}
-			var ec = ident1.Coords().EdgeShared(ident2.Coords())
+			var ec = ident1.Hex().EdgeShared(ident2.Hex())
 			if ec.IsNil() {
 				return ec
 			}
 		}
 	}
-	return EdgeCoords{}
+	return Edge{}
 }
 
 //  Function for determining the vertex indices of an edge in
 //  the hex tile at (u1,v1) that is alse in tile (u2,v2).
 //  Returns nil if the hex coordinates are not adjacent.
-func (coord Coords) EdgeShared(other Coords) EdgeCoords {
+func (coord Hex) EdgeShared(other Hex) Edge {
 	var adjDir = coord.Adjacency(other)
 	if adjDir == hex.NilDirection {
-		return nilEdgeCoords
+		return nilEdge
 	}
 	var vindices = hex.HexEdgeIndices(adjDir)
-	return EdgeCoords{coord.U, coord.V, vindices[0], vindices[1]}
+	return Edge{coord.U, coord.V, vindices[0], vindices[1]}
 }
 
 //  This method needs testing.
-func (vert VertexCoords) Edges() []EdgeCoords {
+func (vert Vertex) Edges() []Edge {
 	var (
 		adjVCs = vert.Adjacents()
-		edges  = make([]EdgeCoords, len(adjVCs))
+		edges  = make([]Edge, len(adjVCs))
 	)
 	for i, other := range adjVCs {
 		edges[i] = vert.EdgeShared(other)
@@ -475,21 +475,21 @@ func (vert VertexCoords) Edges() []EdgeCoords {
 }
 
 //  This is untested.
-func (vert VertexCoords) AdjacentByEdge(edge EdgeCoords) VertexCoords {
+func (vert Vertex) AdjacentByEdge(edge Edge) Vertex {
 	v1, v2 := edge.Ends()
 	if vert.IsIdentical(v1) {
 		return v2
 	} else if vert.IsIdentical(v2) {
 		return v1
 	}
-	return VertexCoords{}
+	return Vertex{}
 }
 
 //  Get coordinates of hex vertices in the field incident to vertex (u,v,k).
 //  Returns a slice of vertex coordinates (slices of 3 ints), the first of
-//  which being []int{u, v, k}. See also, (vc VertexCoords) IsIdentical.
-func (vert VertexCoords) IdenticalVertices() []VertexCoords {
-	var adjC = make([]VertexCoords, 1, 3)
+//  which being []int{u, v, k}. See also, (vc Vertex) IsIdentical.
+func (vert Vertex) IdenticalVertices() []Vertex {
+	var adjC = make([]Vertex, 1, 3)
 	adjC[0] = vert
 
 	var adjOffsets [][]int
@@ -506,7 +506,7 @@ func (vert VertexCoords) IdenticalVertices() []VertexCoords {
 			uNew = vert.U + du
 			vNew = vert.V + dv
 		)
-		var offsetCp = VertexCoords{uNew, vNew, kAdj}
+		var offsetCp = Vertex{uNew, vNew, kAdj}
 		adjC = append(adjC, offsetCp)
 	}
 
@@ -514,17 +514,17 @@ func (vert VertexCoords) IdenticalVertices() []VertexCoords {
 }
 
 //  Get a list of unique vertices adjacent to (u,v,k).
-//  See also, (VertexCoords) Identical.
-func (vert VertexCoords) Adjacents() []VertexCoords {
+//  See also, (Vertex) Identical.
+func (vert Vertex) Adjacents() []Vertex {
 	var identVerts = vert.IdenticalVertices()
-	var adjVerts = make([]VertexCoords, len(identVerts))
+	var adjVerts = make([]Vertex, len(identVerts))
 	for i, vert := range identVerts {
-		adjVerts[i] = VertexCoords{vert.U, vert.V, hex.HexVertexIndexClockwise(vert.K)}
+		adjVerts[i] = Vertex{vert.U, vert.V, hex.HexVertexIndexClockwise(vert.K)}
 	}
 	return adjVerts
 }
 
-func (vert VertexCoords) IsAdjacent(other VertexCoords) bool {
+func (vert Vertex) IsAdjacent(other Vertex) bool {
 	for _, adj := range vert.Adjacents() {
 		if adj.IsIdentical(other) {
 			return true
