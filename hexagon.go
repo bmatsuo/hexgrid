@@ -15,10 +15,10 @@ import (
 
 //  Hexagons have faces in directions NW, N, NE, SE, S, SW
 //  and vertices in directions W, NW, NE, E, SE, SW.
-type HexDirection int
+type Direction int
 
 const (
-	N HexDirection = iota
+	N Direction = iota
 	NE
 	NW
 	S
@@ -30,27 +30,27 @@ const (
 )
 
 var (
-	hexDirections    = []HexDirection{S, SE, E, NE, N, NW, W, SW}
-	vertexDirections = []HexDirection{SE, E, NE, NW, W, SW}
-	edgeDirections   = []HexDirection{S, SE, NE, N, NW, SW}
+	hexDirections    = []Direction{S, SE, E, NE, N, NW, W, SW}
+	vertexDirections = []Direction{SE, E, NE, NW, W, SW}
+	edgeDirections   = []Direction{S, SE, NE, N, NW, SW}
 )
 
-func copyDirections(ds []HexDirection) []HexDirection {
-	var dsCopy = make([]HexDirection, len(ds))
+func copyDirections(ds []Direction) []Direction {
+	var dsCopy = make([]Direction, len(ds))
 	copy(dsCopy, ds)
 	return dsCopy
 }
-func HexDirections() []HexDirection {
+func Directions() []Direction {
 	return copyDirections(hexDirections)
 }
-func VertexDirections() []HexDirection {
+func VertexDirections() []Direction {
 	return copyDirections(vertexDirections)
 }
-func EdgeDirections() []HexDirection {
+func EdgeDirections() []Direction {
 	return copyDirections(edgeDirections)
 }
 
-var hexDirectionInverse = []HexDirection{
+var hexDirectionInverse = []Direction{
 	N:  S,
 	NE: SW,
 	E:  W,
@@ -61,7 +61,7 @@ var hexDirectionInverse = []HexDirection{
 	NW: SE,
 }
 
-func (dir HexDirection) Inverse() HexDirection {
+func (dir Direction) Inverse() Direction {
 	if int(dir) >= len(hexDirectionInverse) {
 		return NilDirection
 	}
@@ -80,7 +80,7 @@ func HexVertexIndexCounterClockwise(k int) int {
 
 //  Return the direction of vertex k relative to the center of a hexagon.
 //  Returns NilDirection if k is not in the range [0,5].
-func HexVertexDirection(k int) HexDirection {
+func HexVertexDirection(k int) Direction {
 	switch k {
 	case 0:
 		return SW
@@ -100,7 +100,7 @@ func HexVertexDirection(k int) HexDirection {
 
 //  Return the vertex k in direction dir from a hex tile's center.
 //  Returns -1 if dir is NilDirection, N, or S.
-func HexVertexIndex(dir HexDirection) int {
+func HexVertexIndex(dir Direction) int {
 	switch dir {
 	case SW:
 		return 0
@@ -141,7 +141,7 @@ func (hex *HexPoints) Points() []point.Point {
 	copy(points, hex[:])
 	return points
 }
-func HexEdgeDirection(k, ell int) HexDirection {
+func HexEdgeDirection(k, ell int) Direction {
 	if k > ell {
 		var tmp = k
 		k = ell
@@ -162,7 +162,7 @@ func HexEdgeDirection(k, ell int) HexDirection {
 	}
 	return NilDirection
 }
-func HexEdgeIndices(dir HexDirection) []int {
+func HexEdgeIndices(dir Direction) []int {
 	switch dir {
 	case S:
 		return []int{0, 1}
@@ -179,7 +179,7 @@ func HexEdgeIndices(dir HexDirection) []int {
 	}
 	return nil
 }
-func (hex *HexPoints) EdgePoints(dir HexDirection) []point.Point {
+func (hex *HexPoints) EdgePoints(dir Direction) []point.Point {
 	var edgeIndices = HexEdgeIndices(dir)
 	if edgeIndices == nil {
 		return nil

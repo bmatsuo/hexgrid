@@ -23,7 +23,7 @@ func (coords Coords) Equals(other Coords) bool {
 // Vertices farthest in the specified direction. If d is NilDirection all
 // coordinates vertices are returned, otherwise either one or two vertices
 // are returned. The vertices are returned in increasing order (0, ..., 5).
-func (c Coords) Vertices(d HexDirection) []VertexCoords {
+func (c Coords) Vertices(d Direction) []VertexCoords {
 	var vertices []int
 	if d < NilDirection {
 		vertices = directionVertices[d]
@@ -73,7 +73,7 @@ var directionVertices = [][]int{
 }
 
 // See Vertices.
-func (c Coords) Edges(d HexDirection) []EdgeCoords {
+func (c Coords) Edges(d Direction) []EdgeCoords {
 	var coords []vertexPair
 	if d < NilDirection {
 		coords = directionEdges[d]
@@ -129,7 +129,7 @@ var directionEdges = [][]vertexPair{
 
 //  Vertices in the grid are indexed by hex coordinates paired with a
 //  vertex index K. Vertex indices range from 0 to 5 and begin in the
-//  south-west corner of the vertex. See also, HexDirection.
+//  south-west corner of the vertex. See also, Direction.
 type VertexCoords struct {
 	U, V, K int
 }
@@ -248,7 +248,7 @@ func sameTile(u1, v1, u2, v2 int) bool {
 
 //  If hex tiles (u1,v1) and (u2,v2) are adjacent, the direction of (u2,v2)
 //  from (u1,v1) is returned. Otherwise NilDirection is returned.
-func (c Coords) Adjacency(adj Coords) HexDirection {
+func (c Coords) Adjacency(adj Coords) Direction {
 	var (
 		deltaU = adj.U - c.U
 		deltaV = adj.U - c.U
@@ -308,7 +308,7 @@ func (c Coords) IsAdjacent(adj Coords) bool {
 //  are returned in that order.
 //  If NilDirection is suppied, then coordinates for all adjacent hexagons
 //  are returned in the order N, NE, SE, S, SW, NW.
-func (coords Coords) Adjacents(dir HexDirection) []Coords {
+func (coords Coords) Adjacents(dir Direction) []Coords {
 	var (
 		u = coords.U
 		v = coords.V
