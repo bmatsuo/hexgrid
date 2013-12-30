@@ -1,9 +1,10 @@
-package hexgrid
 /* 
-*  File: coords_test.go
-*  Author: Bryan Matsuo [bmatsuo@soe.ucsc.edu] 
-*  Created: Sat Jul  2 02:01:22 PDT 2011
+File: hexcoords_test.go
+Created: Sat Jul  2 02:01:22 PDT 2011
 */
+
+package hexcoords
+
 import (
     "testing"
 )

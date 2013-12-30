@@ -1,9 +1,9 @@
 /*
-File: coords.go
+File: hexcoords.go
 Created: Sat Jul  2 00:54:20 PDT 2011
 */
 
-package hexgrid
+package hexcoords
 
 import (
 	"math"
@@ -99,30 +99,30 @@ var directionAllEdges = []vertexPair{
 	{5, 0},
 }
 var directionEdges = [][]vertexPair{
-	S: []vertexPair{
+	S: {
 		{HexVertexIndex(SW), HexVertexIndex(SE)},
 	},
-	SE: []vertexPair{
+	SE: {
 		{HexVertexIndex(SE), HexVertexIndex(E)},
 	},
-	E: []vertexPair{
+	E: {
 		{HexVertexIndex(SE), HexVertexIndex(E)},
 		{HexVertexIndex(E), HexVertexIndex(NE)},
 	},
-	NE: []vertexPair{
+	NE: {
 		{HexVertexIndex(E), HexVertexIndex(NE)},
 	},
-	N: []vertexPair{
+	N: {
 		{HexVertexIndex(NE), HexVertexIndex(NW)},
 	},
-	NW: []vertexPair{
+	NW: {
 		{HexVertexIndex(NW), HexVertexIndex(W)},
 	},
-	W: []vertexPair{
+	W: {
 		{HexVertexIndex(NW), HexVertexIndex(W)},
 		{HexVertexIndex(W), HexVertexIndex(SW)},
 	},
-	SW: []vertexPair{
+	SW: {
 		{HexVertexIndex(W), HexVertexIndex(SW)},
 	},
 }
