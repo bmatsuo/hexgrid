@@ -14,9 +14,7 @@ import (
 var PointApproximationGap = 1.0e-12
 
 //  A generic 2-dimensional point.
-type Point struct {
-	X, Y float64
-}
+type Point struct{ X, Y float64 }
 
 //  A point at (infinity, infinity). See also, PointIsInf.
 func PointInf() Point {
