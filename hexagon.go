@@ -1,9 +1,32 @@
-package hexgrid
 /* 
-*  File: polygon.go
-*  Author: Bryan Matsuo [bmatsuo@soe.ucsc.edu] 
+*  File: hexagon.go
+*  Author: Bryan Matsuo [bryan.matsuo@gmail.com] 
 *  Created: Wed Jun 29 13:56:22 PDT 2011
  */
+
+/*
+Direction
+
+Conceptually grids are oriented such that they are flat on one side (opposed
+to standing on point). This grounding gives the word 'direction' meaning. 
+Cardinal directions are used to reference the incident objects of a hexagon.
+
+	     1 _ 12 _ 2
+	    /          \
+	  61            23
+	 /                \
+	6       HEXA       3
+	 \                /
+	  56            34
+	    \5 _ 45 _ 4/
+
+Using the above HEXA as an example, its N(orth) edge is 12, E(ast) vertex is 3,
+NE edge is 23, etc.
+
+FIXME HEXA's vertex numbering is not right?
+*/
+package hexgrid
+
 import (
     "math"
     //"log"
