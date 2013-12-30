@@ -13,92 +13,118 @@ import (
 //  Discrete hex coordinates consist of a horizontal U axis and a vertical
 //  V axis. Each axis has range (-inf,inf) in theory. In practice, Grid
 //  objects limit the accessible hex tiles.
-type Coords struct {
-	U, V int
-}
+type Coords struct{ U, V int }
 
 // The coordinates have the same U and V fields.
 func (coords Coords) Equals(other Coords) bool {
 	return coords.U == other.U && coords.V == other.V
 }
 
-//  Return the vertices of c in order 0, 1, ..., 5
+// Vertices farthest in the specified direction. If d is NilDirection all
+// coordinates vertices are returned, otherwise either one or two vertices
+// are returned. The vertices are returned in increasing order (0, ..., 5).
 func (c Coords) Vertices(d HexDirection) []VertexCoords {
-	// TODO make this implementation more efficient.
-	var (
-		u = c.U
-		v = c.V
-	)
-	switch d {
-	case S:
-		return []VertexCoords{
-			VertexCoords{u, v, HexVertexIndex(SW)},
-			VertexCoords{u, v, HexVertexIndex(SE)}}
-	case SE:
-		return []VertexCoords{VertexCoords{u, v, HexVertexIndex(SE)}}
-	case E:
-		return []VertexCoords{
-			VertexCoords{u, v, HexVertexIndex(SE)},
-			VertexCoords{u, v, HexVertexIndex(NE)}}
-	case NE:
-		return []VertexCoords{VertexCoords{u, v, HexVertexIndex(NE)}}
-	case N:
-		return []VertexCoords{
-			VertexCoords{u, v, HexVertexIndex(NE)},
-			VertexCoords{u, v, HexVertexIndex(NW)}}
-	case NW:
-		return []VertexCoords{VertexCoords{u, v, HexVertexIndex(NW)}}
-	case W:
-		return []VertexCoords{
-			VertexCoords{u, v, HexVertexIndex(NW)},
-			VertexCoords{u, v, HexVertexIndex(SW)}}
-	case SW:
-		return []VertexCoords{VertexCoords{u, v, HexVertexIndex(SW)}}
+	var vertices []int
+	if d < NilDirection {
+		vertices = directionVertices[d]
+	} else {
+		vertices = directionAllVertices
 	}
-	// Return all vertices
-	var vertices = make([]VertexCoords, 6)
-	for k := 0; k < 6; k++ {
-		vertices[k] = VertexCoords{c.U, c.V, k}
+
+	vcs := make([]VertexCoords, len(vertices))
+	for i := range vertices {
+		vcs[i] = VertexCoords{c.U, c.V, vertices[i]}
 	}
-	return vertices
+
+	return vcs
 }
 
-//  The vertices of c in order (0,1) (1,2), ..., (5,0)
+var directionAllVertices = []int{0, 1, 2, 3, 4, 5}
+
+var directionVertices = [][]int{
+	S: {
+		HexVertexIndex(SW),
+		HexVertexIndex(SE),
+	},
+	SE: {
+		HexVertexIndex(SE),
+	},
+	E: {
+		HexVertexIndex(SE),
+		HexVertexIndex(NE),
+	},
+	NE: {
+		HexVertexIndex(NE),
+	},
+	N: {
+		HexVertexIndex(NE),
+		HexVertexIndex(NW),
+	},
+	NW: {
+		HexVertexIndex(NW),
+	},
+	W: {
+		HexVertexIndex(NW),
+		HexVertexIndex(SW),
+	},
+	SW: {
+		HexVertexIndex(SW),
+	},
+}
+
+// See Vertices.
 func (c Coords) Edges(d HexDirection) []EdgeCoords {
-	// TODO make this implementation more efficient.
-	var (
-		u = c.U
-		v = c.V
-	)
-	switch d {
-	case S:
-		return []EdgeCoords{
-			EdgeCoords{u, v, HexVertexIndex(SW), HexVertexIndex(SE)}}
-	case SE:
-		return []EdgeCoords{EdgeCoords{u, v, HexVertexIndex(SE), HexVertexIndex(E)}}
-	case E:
-		return []EdgeCoords{
-			EdgeCoords{u, v, HexVertexIndex(SE), HexVertexIndex(E)},
-			EdgeCoords{u, v, HexVertexIndex(E), HexVertexIndex(NE)}}
-	case NE:
-		return []EdgeCoords{EdgeCoords{u, v, HexVertexIndex(E), HexVertexIndex(NE)}}
-	case N:
-		return []EdgeCoords{
-			EdgeCoords{u, v, HexVertexIndex(NE), HexVertexIndex(NW)}}
-	case NW:
-		return []EdgeCoords{EdgeCoords{u, v, HexVertexIndex(NW), HexVertexIndex(W)}}
-	case W:
-		return []EdgeCoords{
-			EdgeCoords{u, v, HexVertexIndex(NW), HexVertexIndex(W)},
-			EdgeCoords{u, v, HexVertexIndex(W), HexVertexIndex(SW)}}
-	case SW:
-		return []EdgeCoords{EdgeCoords{u, v, HexVertexIndex(W), HexVertexIndex(SW)}}
+	var coords []vertexPair
+	if d < NilDirection {
+		coords = directionEdges[d]
+	} else {
+		coords = directionAllEdges
 	}
-	var edges = make([]EdgeCoords, 6)
-	for k := 0; k < 6; k++ {
-		edges[k] = EdgeCoords{c.U, c.V, k, (k + 1) % 6}
+
+	var edges = make([]EdgeCoords, 0, 6)
+	for _, e := range coords {
+		edges = append(edges, EdgeCoords{c.U, c.V, e.v1, e.v2})
 	}
 	return edges
+}
+
+type vertexPair struct{ v1, v2 int }
+
+var directionAllEdges = []vertexPair{
+	{0, 1},
+	{1, 2},
+	{2, 3},
+	{3, 4},
+	{4, 5},
+	{5, 0},
+}
+var directionEdges = [][]vertexPair{
+	S: []vertexPair{
+		{HexVertexIndex(SW), HexVertexIndex(SE)},
+	},
+	SE: []vertexPair{
+		{HexVertexIndex(SE), HexVertexIndex(E)},
+	},
+	E: []vertexPair{
+		{HexVertexIndex(SE), HexVertexIndex(E)},
+		{HexVertexIndex(E), HexVertexIndex(NE)},
+	},
+	NE: []vertexPair{
+		{HexVertexIndex(E), HexVertexIndex(NE)},
+	},
+	N: []vertexPair{
+		{HexVertexIndex(NE), HexVertexIndex(NW)},
+	},
+	NW: []vertexPair{
+		{HexVertexIndex(NW), HexVertexIndex(W)},
+	},
+	W: []vertexPair{
+		{HexVertexIndex(NW), HexVertexIndex(W)},
+		{HexVertexIndex(W), HexVertexIndex(SW)},
+	},
+	SW: []vertexPair{
+		{HexVertexIndex(W), HexVertexIndex(SW)},
+	},
 }
 
 //  Vertices in the grid are indexed by hex coordinates paired with a
