@@ -67,26 +67,22 @@ func EdgeDirections() []HexDirection {
 	return copyDirections(edgeDirections)
 }
 
+var hexDirectionInverse = []HexDirection{
+	N:  S,
+	NE: SW,
+	E:  W,
+	SE: NW,
+	S:  N,
+	SW: NE,
+	W:  E,
+	NW: SE,
+}
+
 func (dir HexDirection) Inverse() HexDirection {
-	switch dir {
-	case N:
-		return S
-	case NE:
-		return SW
-	case E:
-		return W
-	case SE:
-		return NW
-	case S:
-		return N
-	case SW:
-		return NE
-	case W:
-		return E
-	case NW:
-		return SE
+	if int(dir) >= len(hexDirectionInverse) {
+		return NilDirection
 	}
-	return NilDirection
+	return hexDirectionInverse[dir]
 }
 
 //  Get the index of the vertex clockwise of vertex k.
