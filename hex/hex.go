@@ -62,18 +62,18 @@ func (dir Direction) Inverse() Direction {
 }
 
 //  Get the index of the vertex clockwise of vertex k.
-func HexVertexIndexClockwise(k int) int {
+func VertexIndexClockwise(k int) int {
 	return (k + 5) % 6
 }
 
 //  Get the index of the vertex counter-clockwise of vertex k.
-func HexVertexIndexCounterClockwise(k int) int {
+func VertexIndexCounterClockwise(k int) int {
 	return (k + 1) % 6
 }
 
 //  Return the direction of vertex k relative to the center of a hexagon.
 //  Returns NilDirection if k is not in the range [0,5].
-func HexVertexDirection(k int) Direction {
+func VertexDirection(k int) Direction {
 	switch k {
 	case 0:
 		return SW
@@ -93,7 +93,7 @@ func HexVertexDirection(k int) Direction {
 
 //  Return the vertex k in direction dir from a hex tile's center.
 //  Returns -1 if dir is NilDirection, N, or S.
-func HexVertexIndex(dir Direction) int {
+func VertexIndex(dir Direction) int {
 	switch dir {
 	case SW:
 		return 0

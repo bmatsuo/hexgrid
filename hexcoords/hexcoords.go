@@ -44,32 +44,32 @@ var directionAllVertices = []int{0, 1, 2, 3, 4, 5}
 
 var directionVertices = [][]int{
 	hex.S: {
-		hex.HexVertexIndex(hex.SW),
-		hex.HexVertexIndex(hex.SE),
+		hex.VertexIndex(hex.SW),
+		hex.VertexIndex(hex.SE),
 	},
 	hex.SE: {
-		hex.HexVertexIndex(hex.SE),
+		hex.VertexIndex(hex.SE),
 	},
 	hex.E: {
-		hex.HexVertexIndex(hex.SE),
-		hex.HexVertexIndex(hex.NE),
+		hex.VertexIndex(hex.SE),
+		hex.VertexIndex(hex.NE),
 	},
 	hex.NE: {
-		hex.HexVertexIndex(hex.NE),
+		hex.VertexIndex(hex.NE),
 	},
 	hex.N: {
-		hex.HexVertexIndex(hex.NE),
-		hex.HexVertexIndex(hex.NW),
+		hex.VertexIndex(hex.NE),
+		hex.VertexIndex(hex.NW),
 	},
 	hex.NW: {
-		hex.HexVertexIndex(hex.NW),
+		hex.VertexIndex(hex.NW),
 	},
 	hex.W: {
-		hex.HexVertexIndex(hex.NW),
-		hex.HexVertexIndex(hex.SW),
+		hex.VertexIndex(hex.NW),
+		hex.VertexIndex(hex.SW),
 	},
 	hex.SW: {
-		hex.HexVertexIndex(hex.SW),
+		hex.VertexIndex(hex.SW),
 	},
 }
 
@@ -101,30 +101,30 @@ var directionAllEdges = []vertexPair{
 }
 var directionEdges = [][]vertexPair{
 	hex.S: {
-		{hex.HexVertexIndex(hex.SW), hex.HexVertexIndex(hex.SE)},
+		{hex.VertexIndex(hex.SW), hex.VertexIndex(hex.SE)},
 	},
 	hex.SE: {
-		{hex.HexVertexIndex(hex.SE), hex.HexVertexIndex(hex.E)},
+		{hex.VertexIndex(hex.SE), hex.VertexIndex(hex.E)},
 	},
 	hex.E: {
-		{hex.HexVertexIndex(hex.SE), hex.HexVertexIndex(hex.E)},
-		{hex.HexVertexIndex(hex.E), hex.HexVertexIndex(hex.NE)},
+		{hex.VertexIndex(hex.SE), hex.VertexIndex(hex.E)},
+		{hex.VertexIndex(hex.E), hex.VertexIndex(hex.NE)},
 	},
 	hex.NE: {
-		{hex.HexVertexIndex(hex.E), hex.HexVertexIndex(hex.NE)},
+		{hex.VertexIndex(hex.E), hex.VertexIndex(hex.NE)},
 	},
 	hex.N: {
-		{hex.HexVertexIndex(hex.NE), hex.HexVertexIndex(hex.NW)},
+		{hex.VertexIndex(hex.NE), hex.VertexIndex(hex.NW)},
 	},
 	hex.NW: {
-		{hex.HexVertexIndex(hex.NW), hex.HexVertexIndex(hex.W)},
+		{hex.VertexIndex(hex.NW), hex.VertexIndex(hex.W)},
 	},
 	hex.W: {
-		{hex.HexVertexIndex(hex.NW), hex.HexVertexIndex(hex.W)},
-		{hex.HexVertexIndex(hex.W), hex.HexVertexIndex(hex.SW)},
+		{hex.VertexIndex(hex.NW), hex.VertexIndex(hex.W)},
+		{hex.VertexIndex(hex.W), hex.VertexIndex(hex.SW)},
 	},
 	hex.SW: {
-		{hex.HexVertexIndex(hex.W), hex.HexVertexIndex(hex.SW)},
+		{hex.VertexIndex(hex.W), hex.VertexIndex(hex.SW)},
 	},
 }
 
@@ -159,10 +159,10 @@ func (vc Vertex) IsIdentical(other Vertex) bool {
 	return false
 }
 func (vc Vertex) Clockwise() Vertex {
-	return Vertex{vc.U, vc.V, hex.HexVertexIndexClockwise(vc.K)}
+	return Vertex{vc.U, vc.V, hex.VertexIndexClockwise(vc.K)}
 }
 func (vc Vertex) CounterClockwise() Vertex {
-	return Vertex{vc.U, vc.V, hex.HexVertexIndexCounterClockwise(vc.K)}
+	return Vertex{vc.U, vc.V, hex.VertexIndexCounterClockwise(vc.K)}
 }
 
 //  Edges in the grid are index by hex coordinates along with a pair of
@@ -519,7 +519,7 @@ func (vert Vertex) Adjacents() []Vertex {
 	var identVerts = vert.IdenticalVertices()
 	var adjVerts = make([]Vertex, len(identVerts))
 	for i, vert := range identVerts {
-		adjVerts[i] = Vertex{vert.U, vert.V, hex.HexVertexIndexClockwise(vert.K)}
+		adjVerts[i] = Vertex{vert.U, vert.V, hex.VertexIndexClockwise(vert.K)}
 	}
 	return adjVerts
 }
