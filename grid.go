@@ -57,7 +57,7 @@ type Grid struct {
 	v        []Vertex
 	e        []Edge
 	t        []Tile
-	hexes    [][]*hex.HexPoints
+	hexes    [][]*HexPoints
 	tiles    [][]*Tile
 	vertices [][][]*Vertex
 	edges    [][][][]*Edge
@@ -207,7 +207,7 @@ func (h *Grid) WithinBounds(c hexcoords.Hex) bool {
 
 //  Generate points for the hexagon at row i, column j.
 //  Returns nil when the position (i,j) is not within the bounds of the board.
-func (h *Grid) GetHex(c hexcoords.Hex) *hex.HexPoints {
+func (h *Grid) GetHex(c hexcoords.Hex) *HexPoints {
 	if !h.WithinBounds(c) {
 		return nil
 	}
@@ -215,11 +215,91 @@ func (h *Grid) GetHex(c hexcoords.Hex) *hex.HexPoints {
 		i, j = h.hexIndex(c)
 	)
 	if h.hexes[i][j] != nil {
-		var newh = new(hex.HexPoints)
+		var newh = new(HexPoints)
 		*newh = *(h.hexes[i][j])
 		return newh
 	}
-	return hex.NewHex(h.TileCenter(c), h.radius)
+	return NewHex(h.TileCenter(c), h.radius)
+}
+
+//  A simple hexagon type thinly wrapping a Point array.
+type HexPoints [6]point.Point
+
+func (hex *HexPoints) Point(k int) point.Point {
+	if k < 0 || k >= len(hex) {
+		panic("Point index out of bounds")
+	}
+	return hex[k]
+}
+func (hex *HexPoints) Points() []point.Point {
+	var points = make([]point.Point, 6)
+	copy(points, hex[:])
+	return points
+}
+func EdgeDirection(k, ell int) hex.Direction {
+	if k > ell {
+		var tmp = k
+		k = ell
+		ell = tmp
+	}
+	if k == 0 && ell == 1 {
+		return hex.S
+	} else if k == 1 && ell == 2 {
+		return hex.SE
+	} else if k == 2 && ell == 3 {
+		return hex.NE
+	} else if k == 3 && ell == 4 {
+		return hex.N
+	} else if k == 4 && ell == 5 {
+		return hex.NW
+	} else if k == 0 && ell == 5 {
+		return hex.SW
+	}
+	return hex.NilDirection
+}
+func HexEdgeIndices(dir hex.Direction) []int {
+	switch dir {
+	case hex.S:
+		return []int{0, 1}
+	case hex.SE:
+		return []int{1, 2}
+	case hex.NE:
+		return []int{2, 3}
+	case hex.N:
+		return []int{3, 4}
+	case hex.NW:
+		return []int{4, 5}
+	case hex.SW:
+		return []int{5, 0}
+	}
+	return nil
+}
+func (hex *HexPoints) EdgePoints(dir hex.Direction) []point.Point {
+	var edgeIndices = HexEdgeIndices(dir)
+	if edgeIndices == nil {
+		return nil
+	}
+	var (
+		p1 = hex[edgeIndices[0]]
+		p2 = hex[edgeIndices[1]]
+	)
+	return []point.Point{p1, p2}
+}
+
+//  Generate a hexagon at a given point.
+func NewHex(p point.Point, r float64) *HexPoints {
+	var (
+		h  = new(HexPoints)
+		side = point.Point{r, 0}.Scale(hex.SideRadiusRatio)
+	)
+	h[0] = point.Point{0, -r}.Sub(side)
+	for i := 1; i < 6; i++ {
+		h[i] = h[i-1].Rot(hex.RotateAngle)
+	}
+	for i := 0; i < 6; i++ {
+		h[i] = h[i].Add(p)
+	}
+	return h
 }
 
 func (h *Grid) getVCWithinBounds(vc hexcoords.Vertex) hexcoords.Vertex {
@@ -378,7 +458,7 @@ func (h *Grid) genEdges(defaultValue Value) {
 			for k := 0; k < 6; k++ {
 				for ell := 0; ell < 6; ell++ { // BEGIN (k,ell) EDGE ANALYSIS
 					// Ensure an edge between k and ell exists.
-					var edgeDir = hex.EdgeDirection(k, ell)
+					var edgeDir = EdgeDirection(k, ell)
 					if edgeDir != hex.NilDirection && h.edges[i][j][k][ell] == nil {
 						var (
 							coords = hexcoords.Edge{c.U, c.V, k, ell}
@@ -397,7 +477,7 @@ func (h *Grid) genEdges(defaultValue Value) {
 						h.e = append(h.e, Edge{Hex: coords, Value: value})
 						var (
 							edgePtr        = &(h.e[len(h.e)-1])
-							adjEdgeIndices = hex.HexEdgeIndices(edgeDir.Inverse())
+							adjEdgeIndices = HexEdgeIndices(edgeDir.Inverse())
 						)
 						if adjEdgeIndices == nil {
 							panic("niladjindices")
@@ -434,10 +514,10 @@ func (h *Grid) genEdges(defaultValue Value) {
 }
 func (h *Grid) genHexagons() {
 	h.p = make([]point.Point, 0, h.expectedNumVertices())
-	h.hexes = make([][]*hex.HexPoints, h.n)
+	h.hexes = make([][]*HexPoints, h.n)
 	// Generate all hexagons.
 	for i := 0; i < h.n; i++ {
-		h.hexes[i] = make([]*hex.HexPoints, h.m)
+		h.hexes[i] = make([]*HexPoints, h.m)
 		for j := 0; j < h.m; j++ {
 			var (
 				c = h.hexCoords(i, j)

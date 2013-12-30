@@ -459,8 +459,8 @@ func (coord Hex) EdgeShared(other Hex) Edge {
 	if adjDir == hex.NilDirection {
 		return nilEdge
 	}
-	var vindices = hex.HexEdgeIndices(adjDir)
-	return Edge{coord.U, coord.V, vindices[0], vindices[1]}
+	edge := adjDir.Edge()
+	return Edge{coord.U, coord.V, edge.Orig().Int(), edge.Term().Int()}
 }
 
 //  This method needs testing.
