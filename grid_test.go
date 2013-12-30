@@ -5,6 +5,8 @@ package hexgrid
 *  Created: Tue Jun 28 17:55:54 PDT 2011
  */
 import (
+	point "github.com/bmatsuo/hexgrid/point"
+
     //"time"
     "fmt"
     "strings"
@@ -27,12 +29,12 @@ var (
     idesc                          = imageDesc{800, 800, 32}
     hfield                         = NewGrid(23, 33, 80, nil, nil, nil)
     hexLabelFontSize       float64 = 24
-    hexLabelOffset                 = Point{-63, -10}
+    hexLabelOffset                 = point.Point{-63, -10}
     hexCornerLabelFontSize float64 = 12
-    hexCornerLabelOffset           = Point{-3, -6}
+    hexCornerLabelOffset           = point.Point{-3, -6}
 )
 
-func pointInList(p Point, points []Point) bool {
+func pointInList(p point.Point, points []point.Point) bool {
     var found = false
     for _, p2 := range points {
         found = p.ApproxEqual(p2)

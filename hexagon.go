@@ -7,6 +7,8 @@
 package hexgrid
 
 import (
+	point "github.com/bmatsuo/hexgrid/point"
+
 	"math"
 	//"log"
 )
@@ -126,16 +128,16 @@ var (
 )
 
 //  A simple hexagon type thinly wrapping a Point array.
-type HexPoints [6]Point
+type HexPoints [6]point.Point
 
-func (hex *HexPoints) Point(k int) Point {
+func (hex *HexPoints) Point(k int) point.Point {
 	if k < 0 || k >= len(hex) {
 		panic("Point index out of bounds")
 	}
 	return hex[k]
 }
-func (hex *HexPoints) Points() []Point {
-	var points = make([]Point, 6)
+func (hex *HexPoints) Points() []point.Point {
+	var points = make([]point.Point, 6)
 	copy(points, hex[:])
 	return points
 }
@@ -177,7 +179,7 @@ func HexEdgeIndices(dir HexDirection) []int {
 	}
 	return nil
 }
-func (hex *HexPoints) EdgePoints(dir HexDirection) []Point {
+func (hex *HexPoints) EdgePoints(dir HexDirection) []point.Point {
 	var edgeIndices = HexEdgeIndices(dir)
 	if edgeIndices == nil {
 		return nil
@@ -186,16 +188,16 @@ func (hex *HexPoints) EdgePoints(dir HexDirection) []Point {
 		p1 = hex[edgeIndices[0]]
 		p2 = hex[edgeIndices[1]]
 	)
-	return []Point{p1, p2}
+	return []point.Point{p1, p2}
 }
 
 //  Generate a hexagon at a given point.
-func NewHex(p Point, r float64) *HexPoints {
+func NewHex(p point.Point, r float64) *HexPoints {
 	var (
 		hex  = new(HexPoints)
-		side = Point{r, 0}.Scale(hexSideRadiusRatio)
+		side = point.Point{r, 0}.Scale(hexSideRadiusRatio)
 	)
-	hex[0] = Point{0, -r}.Sub(side)
+	hex[0] = point.Point{0, -r}.Sub(side)
 	for i := 1; i < 6; i++ {
 		hex[i] = hex[i-1].Rot(hexRotateAngle)
 	}

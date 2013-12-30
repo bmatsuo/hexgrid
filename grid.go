@@ -253,11 +253,11 @@ func (h *Grid) getVCWithinBounds(vc VertexCoords) VertexCoords {
 //  Get a pointer to the kth corner point of the hex tile at (u,v).
 //  Returns PointInf() when no vertex identical to vc is within the
 //  bounds of h.
-func (h *Grid) GetVertexPoint(vc VertexCoords) Point {
+func (h *Grid) GetVertexPoint(vc VertexCoords) point.Point {
 	var inbounds = h.getVCWithinBounds(vc)
 	var hex = h.GetHex(inbounds.Coords())
 	if hex == nil {
-		return PointInf()
+		return point.PointInf()
 	}
 	return hex[inbounds.K]
 }
@@ -288,13 +288,13 @@ func (h *Grid) verticalOffset(u int) float64 {
 	return 0
 }
 
-func (h *Grid) TileCenter(c Coords) Point {
+func (h *Grid) TileCenter(c Coords) point.Point {
 	var (
 		centerX = float64(c.U) * h.horizontalSpacing()
 		centerY = float64(c.V) * h.verticalSpacing()
 	)
 	centerY += h.verticalOffset(c.U)
-	return Point{centerX, centerY}
+	return point.Point{centerX, centerY}
 }
 
 func (h *Grid) genTiles(defaultValue Value) {
@@ -448,7 +448,7 @@ func (h *Grid) genEdges(defaultValue Value) {
 	}
 }
 func (h *Grid) genHexagons() {
-	h.p = make([]Point, 0, h.expectedNumVertices())
+	h.p = make([]point.Point, 0, h.expectedNumVertices())
 	h.hexes = make([][]*HexPoints, h.n)
 	// Generate all hexagons.
 	for i := 0; i < h.n; i++ {
