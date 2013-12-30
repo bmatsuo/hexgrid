@@ -1,10 +1,9 @@
 /*
-*  File: point2d.go
-*  Author: Bryan Matsuo [bmatsuo@soe.ucsc.edu]
-*  Created: Wed Jun 29 01:07:05 PDT 2011
- */
+File: point.go
+Created: Wed Jun 29 01:07:05 PDT 2011
+*/
 
-package hexgrid
+package point
 
 import (
 	"image"

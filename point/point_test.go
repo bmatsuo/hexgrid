@@ -1,9 +1,10 @@
-package hexgrid
 /* 
-*  File: point2d_test.go
-*  Author: Bryan Matsuo [bmatsuo@soe.ucsc.edu] 
-*  Created: Wed Jun 29 01:07:05 PDT 2011
- */
+File: point_test.go
+Created: Wed Jun 29 01:07:05 PDT 2011
+*/
+
+package point
+
 import (
     "testing"
     "math"
