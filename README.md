@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/bmatsuo/hexgrid.png?branch=master)](https://travis-ci.org/bmatsuo/hexgrid)
+
 About hexgrid
 =============
 
