@@ -7,39 +7,24 @@
 package hexgrid
 
 import (
-	point "github.com/bmatsuo/hexgrid/point"
+	"github.com/bmatsuo/hexgrid/hex"
+	"github.com/bmatsuo/hexgrid/point"
+	"github.com/bmatsuo/hexgrid/hexcoords"
 
 	"fmt"
 	"math"
 	//"log"
 )
 
-var (
-	hexHighVertexIncidenceOffset = [][][]int{
-		{{-1, 0, 2}, {0, -1, 4}},
-		{{0, -1, 3}, {1, 0, 5}},
-		{{1, 0, 4}, {1, 1, 0}},
-		{{1, 1, 5}, {0, 1, 1}},
-		{{0, 1, 0}, {-1, 1, 2}},
-		{{-1, 1, 2}, {-1, 0, 3}}}
-	hexLowVertexIncidenceOffset = [][][]int{
-		{{-1, -1, 2}, {0, -1, 4}},
-		{{0, -1, 3}, {1, -1, 5}},
-		{{1, -1, 4}, {1, 0, 0}},
-		{{1, 0, 5}, {0, 1, 1}},
-		{{0, 1, 0}, {-1, 0, 2}},
-		{{-1, 0, 1}, {-1, -1, 3}}}
-)
-
 type Value interface{}
 
 //  For each coordinate in a Grid there is one unique HexTile.
 type Tile struct {
-	Coords Coords
+	Coords hexcoords.Coords
 	Pos    point.Point
 	Value  Value
 }
-type TileInitializer func(Coords) Value
+type TileInitializer func(hexcoords.Coords) Value
 
 //  A HexVertex represents the corner a HexTile. A HexVertex can be shared
 //  by at most 3 HexTiles and can be the junction of between 2 and three
@@ -47,20 +32,20 @@ type TileInitializer func(Coords) Value
 //  its tiles are on the edge of the grid. It will be the endpoint of two
 //  edges only it belongs to one tile (and is on the edge of the grid).
 type Vertex struct {
-	Coords VertexCoords
+	Coords hexcoords.VertexCoords
 	Pos    point.Point
 	Value  Value
 }
-type VertexInitializer func(VertexCoords) Value
+type VertexInitializer func(hexcoords.VertexCoords) Value
 
 //  A HexEdge represents an edge between two HexVertex objects. It is
 //  part of the boundary of a HexTile. A HexEdge can be 'Between' only
 //  one tile if its tile is on the edge of the grid.
 type Edge struct {
-	Coords EdgeCoords
+	Coords hexcoords.EdgeCoords
 	Value  Value
 }
-type EdgeInitializer func(coords EdgeCoords, v1, v2 *Vertex) Value
+type EdgeInitializer func(coords hexcoords.EdgeCoords, v1, v2 *Vertex) Value
 
 //  A grid of hexagons in a discrete coordinate system (u,v) where u
 //  indexes the column of the grid, and v the row.
@@ -72,7 +57,7 @@ type Grid struct {
 	v        []Vertex
 	e        []Edge
 	t        []Tile
-	hexes    [][]*HexPoints
+	hexes    [][]*hex.HexPoints
 	tiles    [][]*Tile
 	vertices [][][]*Vertex
 	edges    [][][][]*Edge
@@ -107,7 +92,7 @@ func NewGrid(n, m int, r float64, tileDefault, vertexDefault, edgeDefault interf
 }
 
 //  Retrieve a Tile object specified by its coordinates.
-func (h *Grid) GetTile(c Coords) *Tile {
+func (h *Grid) GetTile(c hexcoords.Coords) *Tile {
 	if !h.WithinBounds(c) {
 		return nil
 	}
@@ -116,7 +101,7 @@ func (h *Grid) GetTile(c Coords) *Tile {
 }
 
 //  Retrieve a Vertex object specified by its coordinates.
-func (h *Grid) GetVertex(vert VertexCoords) *Vertex {
+func (h *Grid) GetVertex(vert hexcoords.VertexCoords) *Vertex {
 	var inbounds = h.getVCWithinBounds(vert)
 	if !h.WithinBounds(inbounds.Coords()) {
 		return nil
@@ -126,7 +111,7 @@ func (h *Grid) GetVertex(vert VertexCoords) *Vertex {
 }
 
 //  Retrieve an Edge object specified by its coordinates.
-func (h *Grid) GetEdge(e EdgeCoords) *Edge {
+func (h *Grid) GetEdge(e hexcoords.EdgeCoords) *Edge {
 	var c = e.Coords()
 	if !h.WithinBounds(c) {
 		return nil
@@ -134,12 +119,12 @@ func (h *Grid) GetEdge(e EdgeCoords) *Edge {
 	i, j := h.hexIndex(c)
 	return h.edges[i][j][e.K][e.L]
 }
-func (h *Grid) GetEdges(coords Coords) []*Edge {
+func (h *Grid) GetEdges(coords hexcoords.Coords) []*Edge {
 	if !h.WithinBounds(coords) {
 		return nil
 	}
 	var edges = make([]*Edge, 6)
-	for k, ec := range coords.Edges(NilDirection) {
+	for k, ec := range coords.Edges(hex.NilDirection) {
 		edges[k] = h.GetEdge(ec)
 	}
 	return edges
@@ -147,8 +132,8 @@ func (h *Grid) GetEdges(coords Coords) []*Edge {
 
 //  Returns the width and height of the Grid wrapped in a
 //  GridDimensions object.
-func (h *Grid) Size() Coords {
-	return Coords{h.n, h.m}
+func (h *Grid) Size() hexcoords.Coords {
+	return hexcoords.Coords{h.n, h.m}
 }
 
 //  Total number of distinct hexagon vertices in the field.
@@ -198,10 +183,10 @@ func (h *Grid) ColMin() int { return -h.horizontalIndexOffset() }
 func (h *Grid) ColMax() int { return h.horizontalIndexOffset() }
 
 /* Some coordinate <-> index internal methods. */
-func (h *Grid) hexCoords(i, j int) Coords {
-	return Coords{i + h.ColMin(), j + h.RowMin()}
+func (h *Grid) hexCoords(i, j int) hexcoords.Coords {
+	return hexcoords.Coords{i + h.ColMin(), j + h.RowMin()}
 }
-func (h *Grid) hexIndex(c Coords) (int, int) {
+func (h *Grid) hexIndex(c hexcoords.Coords) (int, int) {
 	return c.U - h.ColMin(), c.V - h.RowMin()
 }
 
@@ -211,7 +196,7 @@ func (h *Grid) indexWithinBounds(i, j int) bool {
 }
 
 //  Returns true if the hex at coordinates (u,v) is in the hex field.
-func (h *Grid) WithinBounds(c Coords) bool {
+func (h *Grid) WithinBounds(c hexcoords.Coords) bool {
 	if c.U < h.ColMin() || c.U > h.ColMax() {
 		return false
 	} else if c.V < h.RowMin() || c.V > h.RowMax() {
@@ -222,7 +207,7 @@ func (h *Grid) WithinBounds(c Coords) bool {
 
 //  Generate points for the hexagon at row i, column j.
 //  Returns nil when the position (i,j) is not within the bounds of the board.
-func (h *Grid) GetHex(c Coords) *HexPoints {
+func (h *Grid) GetHex(c hexcoords.Coords) *hex.HexPoints {
 	if !h.WithinBounds(c) {
 		return nil
 	}
@@ -230,14 +215,14 @@ func (h *Grid) GetHex(c Coords) *HexPoints {
 		i, j = h.hexIndex(c)
 	)
 	if h.hexes[i][j] != nil {
-		var newh = new(HexPoints)
+		var newh = new(hex.HexPoints)
 		*newh = *(h.hexes[i][j])
 		return newh
 	}
-	return NewHex(h.TileCenter(c), h.radius)
+	return hex.NewHex(h.TileCenter(c), h.radius)
 }
 
-func (h *Grid) getVCWithinBounds(vc VertexCoords) VertexCoords {
+func (h *Grid) getVCWithinBounds(vc hexcoords.VertexCoords) hexcoords.VertexCoords {
 	if h.WithinBounds(vc.Coords()) {
 		return vc
 	}
@@ -253,7 +238,7 @@ func (h *Grid) getVCWithinBounds(vc VertexCoords) VertexCoords {
 //  Get a pointer to the kth corner point of the hex tile at (u,v).
 //  Returns point.Inf() when no vertex identical to vc is within the
 //  bounds of h.
-func (h *Grid) GetVertexPoint(vc VertexCoords) point.Point {
+func (h *Grid) GetVertexPoint(vc hexcoords.VertexCoords) point.Point {
 	var inbounds = h.getVCWithinBounds(vc)
 	var hex = h.GetHex(inbounds.Coords())
 	if hex == nil {
@@ -263,12 +248,12 @@ func (h *Grid) GetVertexPoint(vc VertexCoords) point.Point {
 }
 
 //  This methods should be replaced.
-func (h *Grid) GetVertices(coords Coords) []*Vertex {
+func (h *Grid) GetVertices(coords hexcoords.Coords) []*Vertex {
 	if !h.WithinBounds(coords) {
 		return nil
 	}
 	var vertices = make([]*Vertex, 6)
-	for _, v := range coords.Vertices(NilDirection) {
+	for _, v := range coords.Vertices(hex.NilDirection) {
 		vertices[v.K] = h.GetVertex(v)
 	}
 	return vertices
@@ -276,19 +261,19 @@ func (h *Grid) GetVertices(coords Coords) []*Vertex {
 
 /* Internal methods for computing hexagon positions. */
 func (h *Grid) horizontalSpacing() float64 {
-	return 2 * h.radius * math.Cos(hexTriangleAngle)
+	return 2 * h.radius * math.Cos(hex.TriangleAngle)
 }
 func (h *Grid) verticalSpacing() float64 {
 	return 2 * h.radius
 }
 func (h *Grid) verticalOffset(u int) float64 {
-	if columnIsHigh(u) {
-		return 2 * h.radius * math.Sin(hexTriangleAngle)
+	if hexcoords.ColumnIsHigh(u) {
+		return 2 * h.radius * math.Sin(hex.TriangleAngle)
 	}
 	return 0
 }
 
-func (h *Grid) TileCenter(c Coords) point.Point {
+func (h *Grid) TileCenter(c hexcoords.Coords) point.Point {
 	var (
 		centerX = float64(c.U) * h.horizontalSpacing()
 		centerY = float64(c.V) * h.verticalSpacing()
@@ -310,8 +295,8 @@ func (h *Grid) genTiles(defaultValue Value) {
 				value  Value
 			)
 			switch defaultValue.(type) {
-			case func(Coords) Value:
-				var f = defaultValue.(func(Coords) Value)
+			case func(hexcoords.Coords) Value:
+				var f = defaultValue.(func(hexcoords.Coords) Value)
 				value = f(coords)
 			default:
 				value = defaultValue
@@ -341,7 +326,7 @@ func (h *Grid) genVertices(defaultValue Value) {
 			for k := 0; k < 6; k++ {
 				if h.vertices[i][j][k] == nil {
 					var (
-						vert          = VertexCoords{c.U, c.V, k}
+						vert          = hexcoords.VertexCoords{c.U, c.V, k}
 						identVertices = vert.IdenticalVertices()
 						coords        = vert
 						value         Value
@@ -350,8 +335,8 @@ func (h *Grid) genVertices(defaultValue Value) {
 						panic("outofbounds")
 					}
 					switch defaultValue.(type) {
-					case func(VertexCoords) Value:
-						var f = defaultValue.(func(VertexCoords) Value)
+					case func(hexcoords.VertexCoords) Value:
+						var f = defaultValue.(func(hexcoords.VertexCoords) Value)
 						value = f(coords)
 					default:
 						value = defaultValue
@@ -393,17 +378,17 @@ func (h *Grid) genEdges(defaultValue Value) {
 			for k := 0; k < 6; k++ {
 				for ell := 0; ell < 6; ell++ { // BEGIN (k,ell) EDGE ANALYSIS
 					// Ensure an edge between k and ell exists.
-					var edgeDir = HexEdgeDirection(k, ell)
-					if edgeDir != NilDirection && h.edges[i][j][k][ell] == nil {
+					var edgeDir = hex.HexEdgeDirection(k, ell)
+					if edgeDir != hex.NilDirection && h.edges[i][j][k][ell] == nil {
 						var (
-							coords = EdgeCoords{c.U, c.V, k, ell}
+							coords = hexcoords.EdgeCoords{c.U, c.V, k, ell}
 							value  Value
 							v1     = h.vertices[i][j][k]
 							v2     = h.vertices[i][j][ell]
 						)
 						switch defaultValue.(type) {
-						case func(EdgeCoords, *Vertex, *Vertex) Value:
-							var f = defaultValue.(func(EdgeCoords, *Vertex, *Vertex) Value)
+						case func(hexcoords.EdgeCoords, *Vertex, *Vertex) Value:
+							var f = defaultValue.(func(hexcoords.EdgeCoords, *Vertex, *Vertex) Value)
 							value = f(coords, v1, v2)
 						default:
 							value = defaultValue
@@ -412,7 +397,7 @@ func (h *Grid) genEdges(defaultValue Value) {
 						h.e = append(h.e, Edge{Coords: coords, Value: value})
 						var (
 							edgePtr        = &(h.e[len(h.e)-1])
-							adjEdgeIndices = HexEdgeIndices(edgeDir.Inverse())
+							adjEdgeIndices = hex.HexEdgeIndices(edgeDir.Inverse())
 						)
 						if adjEdgeIndices == nil {
 							panic("niladjindices")
@@ -421,7 +406,7 @@ func (h *Grid) genEdges(defaultValue Value) {
 							adjK   = adjEdgeIndices[0]
 							adjEll = adjEdgeIndices[1]
 						)
-						if edgeDir == NilDirection {
+						if edgeDir == hex.NilDirection {
 							panic("niledgedirection")
 						}
 						var adjCoordsSlice = c.Adjacents(edgeDir)
@@ -449,10 +434,10 @@ func (h *Grid) genEdges(defaultValue Value) {
 }
 func (h *Grid) genHexagons() {
 	h.p = make([]point.Point, 0, h.expectedNumVertices())
-	h.hexes = make([][]*HexPoints, h.n)
+	h.hexes = make([][]*hex.HexPoints, h.n)
 	// Generate all hexagons.
 	for i := 0; i < h.n; i++ {
-		h.hexes[i] = make([]*HexPoints, h.m)
+		h.hexes[i] = make([]*hex.HexPoints, h.m)
 		for j := 0; j < h.m; j++ {
 			var (
 				c = h.hexCoords(i, j)
@@ -473,7 +458,7 @@ func (h *Grid) genHexagons() {
 				hex   = h.hexes[i][j]
 			)
 			for k := 0; k < 6; k++ {
-				var idents = VertexCoords{c.U, c.V, k}.IdenticalVertices()
+				var idents = hexcoords.VertexCoords{c.U, c.V, k}.IdenticalVertices()
 				for _, id := range idents[1:] {
 					var joinVertices = func() {
 						var (

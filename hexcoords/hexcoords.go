@@ -6,6 +6,7 @@ Created: Sat Jul  2 00:54:20 PDT 2011
 package hexcoords
 
 import (
+	"github.com/bmatsuo/hexgrid/hex"
 	"math"
 	//"log"
 )
@@ -20,12 +21,12 @@ func (coords Coords) Equals(other Coords) bool {
 	return coords.U == other.U && coords.V == other.V
 }
 
-// Vertices farthest in the specified direction. If d is NilDirection all
+// Vertices farthest in the specified direction. If d is hex.NilDirection all
 // coordinates vertices are returned, otherwise either one or two vertices
 // are returned. The vertices are returned in increasing order (0, ..., 5).
-func (c Coords) Vertices(d Direction) []VertexCoords {
+func (c Coords) Vertices(d hex.Direction) []VertexCoords {
 	var vertices []int
-	if d < NilDirection {
+	if d < hex.NilDirection {
 		vertices = directionVertices[d]
 	} else {
 		vertices = directionAllVertices
@@ -42,40 +43,40 @@ func (c Coords) Vertices(d Direction) []VertexCoords {
 var directionAllVertices = []int{0, 1, 2, 3, 4, 5}
 
 var directionVertices = [][]int{
-	S: {
-		HexVertexIndex(SW),
-		HexVertexIndex(SE),
+	hex.S: {
+		hex.HexVertexIndex(hex.SW),
+		hex.HexVertexIndex(hex.SE),
 	},
-	SE: {
-		HexVertexIndex(SE),
+	hex.SE: {
+		hex.HexVertexIndex(hex.SE),
 	},
-	E: {
-		HexVertexIndex(SE),
-		HexVertexIndex(NE),
+	hex.E: {
+		hex.HexVertexIndex(hex.SE),
+		hex.HexVertexIndex(hex.NE),
 	},
-	NE: {
-		HexVertexIndex(NE),
+	hex.NE: {
+		hex.HexVertexIndex(hex.NE),
 	},
-	N: {
-		HexVertexIndex(NE),
-		HexVertexIndex(NW),
+	hex.N: {
+		hex.HexVertexIndex(hex.NE),
+		hex.HexVertexIndex(hex.NW),
 	},
-	NW: {
-		HexVertexIndex(NW),
+	hex.NW: {
+		hex.HexVertexIndex(hex.NW),
 	},
-	W: {
-		HexVertexIndex(NW),
-		HexVertexIndex(SW),
+	hex.W: {
+		hex.HexVertexIndex(hex.NW),
+		hex.HexVertexIndex(hex.SW),
 	},
-	SW: {
-		HexVertexIndex(SW),
+	hex.SW: {
+		hex.HexVertexIndex(hex.SW),
 	},
 }
 
 // See Vertices.
-func (c Coords) Edges(d Direction) []EdgeCoords {
+func (c Coords) Edges(d hex.Direction) []EdgeCoords {
 	var coords []vertexPair
-	if d < NilDirection {
+	if d < hex.NilDirection {
 		coords = directionEdges[d]
 	} else {
 		coords = directionAllEdges
@@ -99,37 +100,37 @@ var directionAllEdges = []vertexPair{
 	{5, 0},
 }
 var directionEdges = [][]vertexPair{
-	S: {
-		{HexVertexIndex(SW), HexVertexIndex(SE)},
+	hex.S: {
+		{hex.HexVertexIndex(hex.SW), hex.HexVertexIndex(hex.SE)},
 	},
-	SE: {
-		{HexVertexIndex(SE), HexVertexIndex(E)},
+	hex.SE: {
+		{hex.HexVertexIndex(hex.SE), hex.HexVertexIndex(hex.E)},
 	},
-	E: {
-		{HexVertexIndex(SE), HexVertexIndex(E)},
-		{HexVertexIndex(E), HexVertexIndex(NE)},
+	hex.E: {
+		{hex.HexVertexIndex(hex.SE), hex.HexVertexIndex(hex.E)},
+		{hex.HexVertexIndex(hex.E), hex.HexVertexIndex(hex.NE)},
 	},
-	NE: {
-		{HexVertexIndex(E), HexVertexIndex(NE)},
+	hex.NE: {
+		{hex.HexVertexIndex(hex.E), hex.HexVertexIndex(hex.NE)},
 	},
-	N: {
-		{HexVertexIndex(NE), HexVertexIndex(NW)},
+	hex.N: {
+		{hex.HexVertexIndex(hex.NE), hex.HexVertexIndex(hex.NW)},
 	},
-	NW: {
-		{HexVertexIndex(NW), HexVertexIndex(W)},
+	hex.NW: {
+		{hex.HexVertexIndex(hex.NW), hex.HexVertexIndex(hex.W)},
 	},
-	W: {
-		{HexVertexIndex(NW), HexVertexIndex(W)},
-		{HexVertexIndex(W), HexVertexIndex(SW)},
+	hex.W: {
+		{hex.HexVertexIndex(hex.NW), hex.HexVertexIndex(hex.W)},
+		{hex.HexVertexIndex(hex.W), hex.HexVertexIndex(hex.SW)},
 	},
-	SW: {
-		{HexVertexIndex(W), HexVertexIndex(SW)},
+	hex.SW: {
+		{hex.HexVertexIndex(hex.W), hex.HexVertexIndex(hex.SW)},
 	},
 }
 
 //  Vertices in the grid are indexed by hex coordinates paired with a
 //  vertex index K. Vertex indices range from 0 to 5 and begin in the
-//  south-west corner of the vertex. See also, Direction.
+//  south-west corner of the vertex. See also, hex.Direction.
 type VertexCoords struct {
 	U, V, K int
 }
@@ -158,10 +159,10 @@ func (vc VertexCoords) IsIdentical(other VertexCoords) bool {
 	return false
 }
 func (vc VertexCoords) Clockwise() VertexCoords {
-	return VertexCoords{vc.U, vc.V, HexVertexIndexClockwise(vc.K)}
+	return VertexCoords{vc.U, vc.V, hex.HexVertexIndexClockwise(vc.K)}
 }
 func (vc VertexCoords) CounterClockwise() VertexCoords {
-	return VertexCoords{vc.U, vc.V, HexVertexIndexCounterClockwise(vc.K)}
+	return VertexCoords{vc.U, vc.V, hex.HexVertexIndexCounterClockwise(vc.K)}
 }
 
 //  Edges in the grid are index by hex coordinates along with a pair of
@@ -238,7 +239,7 @@ func (e EdgeCoords) Ends() (v1, v2 VertexCoords) {
 	return v1, v2
 }
 
-func columnIsHigh(u int) bool {
+func ColumnIsHigh(u int) bool {
 	var uOdd = uint(math.Abs(float64(u)))%2 == 1
 	return uOdd
 }
@@ -247,59 +248,59 @@ func sameTile(u1, v1, u2, v2 int) bool {
 }
 
 //  If hex tiles (u1,v1) and (u2,v2) are adjacent, the direction of (u2,v2)
-//  from (u1,v1) is returned. Otherwise NilDirection is returned.
-func (c Coords) Adjacency(adj Coords) Direction {
+//  from (u1,v1) is returned. Otherwise hex.NilDirection is returned.
+func (c Coords) Adjacency(adj Coords) hex.Direction {
 	var (
 		deltaU = adj.U - c.U
 		deltaV = adj.U - c.U
 	)
 	if c.U == adj.U {
 		if deltaV == 1 {
-			return N
+			return hex.N
 		} else if deltaV == -1 {
-			return S
+			return hex.S
 		}
-		return NilDirection
+		return hex.NilDirection
 	}
 	if deltaU == 1 {
-		if columnIsHigh(c.U) {
+		if ColumnIsHigh(c.U) {
 			if c.U == adj.U {
-				return SE
+				return hex.SE
 			}
 			if adj.U == c.U+1 {
-				return NE
+				return hex.NE
 			}
 		} else {
 			if adj.V == c.V-1 {
-				return SE
+				return hex.SE
 			}
 			if c.V == adj.V {
-				return NE
+				return hex.NE
 			}
 		}
 	} else if deltaU == -1 {
-		if columnIsHigh(c.U) {
+		if ColumnIsHigh(c.U) {
 			if adj.V == c.V+1 {
-				return NW
+				return hex.NW
 			}
 			if c.V == adj.V {
-				return SW
+				return hex.SW
 			}
 		} else {
 			if c.V == adj.V {
-				return NW
+				return hex.NW
 			}
 			if adj.V == c.V-1 {
-				return SW
+				return hex.SW
 			}
 		}
 	}
-	return NilDirection
+	return hex.NilDirection
 }
 
 //  Returns true if and only if c is adjacent to adj
 func (c Coords) IsAdjacent(adj Coords) bool {
-	return c.Adjacency(adj) != NilDirection
+	return c.Adjacency(adj) != hex.NilDirection
 }
 
 //  Return a slice of the coordinates for adjacent hexagons
@@ -308,19 +309,19 @@ func (c Coords) IsAdjacent(adj Coords) bool {
 //  are returned in that order.
 //  If NilDirection is suppied, then coordinates for all adjacent hexagons
 //  are returned in the order N, NE, SE, S, SW, NW.
-func (coords Coords) Adjacents(dir Direction) []Coords {
+func (coords Coords) Adjacents(dir hex.Direction) []Coords {
 	var (
 		u = coords.U
 		v = coords.V
 	)
 	switch dir {
-	case N:
+	case hex.N:
 		return []Coords{Coords{u, v + 1}}
-	case S:
+	case hex.S:
 		return []Coords{Coords{u, v - 1}}
-	case E:
+	case hex.E:
 		var adjE = make([]Coords, 2)
-		if columnIsHigh(u) {
+		if ColumnIsHigh(u) {
 			adjE[0] = Coords{u - 1, v + 1}
 			adjE[1] = Coords{u - 1, v}
 		} else {
@@ -328,9 +329,9 @@ func (coords Coords) Adjacents(dir Direction) []Coords {
 			adjE[1] = Coords{u - 1, v - 1}
 		}
 		return adjE
-	case W:
+	case hex.W:
 		var adjW = make([]Coords, 2)
-		if columnIsHigh(u) {
+		if ColumnIsHigh(u) {
 			adjW[0] = Coords{u + 1, v + 1}
 			adjW[1] = Coords{u + 1, v}
 		} else {
@@ -338,29 +339,29 @@ func (coords Coords) Adjacents(dir Direction) []Coords {
 			adjW[1] = Coords{u + 1, v - 1}
 		}
 		return adjW
-	case NE:
-		if columnIsHigh(u) {
+	case hex.NE:
+		if ColumnIsHigh(u) {
 			return []Coords{Coords{u - 1, v + 1}}
 		}
 		return []Coords{Coords{u - 1, v}}
-	case NW:
-		if columnIsHigh(u) {
+	case hex.NW:
+		if ColumnIsHigh(u) {
 			return []Coords{Coords{u + 1, v + 1}}
 		}
 		return []Coords{Coords{u + 1, v}}
-	case SE:
-		if columnIsHigh(u) {
+	case hex.SE:
+		if ColumnIsHigh(u) {
 			return []Coords{Coords{u - 1, v}}
 		}
 		return []Coords{Coords{u - 1, v - 1}}
-	case SW:
-		if columnIsHigh(u) {
+	case hex.SW:
+		if ColumnIsHigh(u) {
 			return []Coords{Coords{u + 1, v}}
 		}
 		return []Coords{Coords{u + 1, v - 1}}
 	default:
 		var adjAll = make([]Coords, 6)
-		if columnIsHigh(u) {
+		if ColumnIsHigh(u) {
 			adjAll[0] = Coords{u, v + 1}     // North
 			adjAll[1] = Coords{u - 1, v + 1} // NorthEast
 			adjAll[2] = Coords{u - 1, v}     // SouthEast
@@ -454,10 +455,10 @@ func (vert VertexCoords) EdgeShared(vert2 VertexCoords) EdgeCoords {
 //  Returns nil if the hex coordinates are not adjacent.
 func (coord Coords) EdgeShared(other Coords) EdgeCoords {
 	var adjDir = coord.Adjacency(other)
-	if adjDir == NilDirection {
+	if adjDir == hex.NilDirection {
 		return nilEdgeCoords
 	}
-	var vindices = HexEdgeIndices(adjDir)
+	var vindices = hex.HexEdgeIndices(adjDir)
 	return EdgeCoords{coord.U, coord.V, vindices[0], vindices[1]}
 }
 
@@ -492,7 +493,7 @@ func (vert VertexCoords) IdenticalVertices() []VertexCoords {
 	adjC[0] = vert
 
 	var adjOffsets [][]int
-	if columnIsHigh(vert.U) {
+	if ColumnIsHigh(vert.U) {
 		adjOffsets = hexHighVertexIncidenceOffset[vert.K]
 	} else {
 		adjOffsets = hexLowVertexIncidenceOffset[vert.K]
@@ -518,7 +519,7 @@ func (vert VertexCoords) Adjacents() []VertexCoords {
 	var identVerts = vert.IdenticalVertices()
 	var adjVerts = make([]VertexCoords, len(identVerts))
 	for i, vert := range identVerts {
-		adjVerts[i] = VertexCoords{vert.U, vert.V, HexVertexIndexClockwise(vert.K)}
+		adjVerts[i] = VertexCoords{vert.U, vert.V, hex.HexVertexIndexClockwise(vert.K)}
 	}
 	return adjVerts
 }
@@ -531,3 +532,20 @@ func (vert VertexCoords) IsAdjacent(other VertexCoords) bool {
 	}
 	return false
 }
+
+var (
+	hexHighVertexIncidenceOffset = [][][]int{
+		{{-1, 0, 2}, {0, -1, 4}},
+		{{0, -1, 3}, {1, 0, 5}},
+		{{1, 0, 4}, {1, 1, 0}},
+		{{1, 1, 5}, {0, 1, 1}},
+		{{0, 1, 0}, {-1, 1, 2}},
+		{{-1, 1, 2}, {-1, 0, 3}}}
+	hexLowVertexIncidenceOffset = [][][]int{
+		{{-1, -1, 2}, {0, -1, 4}},
+		{{0, -1, 3}, {1, -1, 5}},
+		{{1, -1, 4}, {1, 0, 0}},
+		{{1, 0, 5}, {0, 1, 1}},
+		{{0, 1, 0}, {-1, 0, 2}},
+		{{-1, 0, 1}, {-1, -1, 3}}}
+)

@@ -1,16 +1,9 @@
-/*
-*  File: hexagon.go
-*  Author: Bryan Matsuo [bryan.matsuo@gmail.com]
-*  Created: Wed Jun 29 13:56:22 PDT 2011
- */
-
-package hexgrid
+package hex
 
 import (
-	point "github.com/bmatsuo/hexgrid/point"
+	"github.com/bmatsuo/hexgrid/point"
 
 	"math"
-	//"log"
 )
 
 //  Hexagons have faces in directions NW, N, NE, SE, S, SW
@@ -119,12 +112,12 @@ func HexVertexIndex(dir Direction) int {
 }
 
 const (
-	hexTriangleAngle = math.Pi / 6
-	hexRotateAngle   = math.Pi / 3
+	TriangleAngle = math.Pi / 6
+	RotateAngle   = math.Pi / 3
 )
 
 var (
-	hexSideRadiusRatio = math.Tan(hexTriangleAngle)
+	hexSideRadiusRatio = math.Tan(TriangleAngle)
 )
 
 //  A simple hexagon type thinly wrapping a Point array.
@@ -199,7 +192,7 @@ func NewHex(p point.Point, r float64) *HexPoints {
 	)
 	hex[0] = point.Point{0, -r}.Sub(side)
 	for i := 1; i < 6; i++ {
-		hex[i] = hex[i-1].Rot(hexRotateAngle)
+		hex[i] = hex[i-1].Rot(RotateAngle)
 	}
 	for i := 0; i < 6; i++ {
 		hex[i] = hex[i].Add(p)

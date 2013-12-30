@@ -10,19 +10,19 @@ import (
 )
 
 func TestHighColumn(T *testing.T) {
-    if columnIsHigh(0) {
+    if ColumnIsHigh(0) {
         T.Error("Zero column is high. Zero column should be low.")
     }
-    if !columnIsHigh(3) {
+    if !ColumnIsHigh(3) {
         T.Error("3rd column is low. 3rd column should be high.")
     }
-    if !columnIsHigh(-3) {
+    if !ColumnIsHigh(-3) {
         T.Error("-3rd column is low. -3rd column should be high.")
     }
-    if columnIsHigh(6) {
+    if ColumnIsHigh(6) {
         T.Error("6th column is high. 6th column should be low.")
     }
-    if columnIsHigh(-6) {
+    if ColumnIsHigh(-6) {
         T.Error("-6th column is high. -6th column should be low.")
     }
 }

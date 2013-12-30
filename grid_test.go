@@ -1,11 +1,13 @@
-package hexgrid
 /* 
-*  File: hexgrid_test.go
-*  Author: Bryan Matsuo [bmatsuo@soe.ucsc.edu] 
-*  Created: Tue Jun 28 17:55:54 PDT 2011
- */
+File: hexgrid_test.go
+Created: Tue Jun 28 17:55:54 PDT 2011
+*/
+
+package hexgrid
+
 import (
-	point "github.com/bmatsuo/hexgrid/point"
+	"github.com/bmatsuo/hexgrid/point"
+	"github.com/bmatsuo/hexgrid/hexcoords"
 
     //"time"
     "fmt"
@@ -48,7 +50,7 @@ func pointInList(p point.Point, points []point.Point) bool {
 func hexAsString(h *Grid, i, j int, T *testing.T) string {
     var (
         sbuff = new([6]string)
-        hex   = h.GetHex(Coords{i, j})
+        hex   = h.GetHex(hexcoords.Coords{i, j})
     )
     if hex == nil {
         T.Errorf("Nil tile: n: %d i: %d j:%d", h.Size(), i, j)
@@ -110,7 +112,7 @@ func TestHexPoints(T *testing.T) {
     for u := hfield.ColMin() ; u <= hfield.ColMax() ; u++ {
         for v := hfield.RowMin() ; v <= hfield.RowMax() ; v++ {
             var (
-                c   = Coords{u, v}
+                c   = hexcoords.Coords{u, v}
                 hex = hfield.GetHex(c)
             )
             if hex == nil {
