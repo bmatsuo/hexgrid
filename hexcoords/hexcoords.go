@@ -3,6 +3,7 @@ File: hexcoords.go
 Created: Sat Jul  2 00:54:20 PDT 2011
 */
 
+// A coordinate system for a hexogonal field.
 package hexcoords
 
 import (
