@@ -5,6 +5,8 @@ package hexgrid
 *  Created: Tue Jun 28 03:40:52 PDT 2011
  */
 import (
+	point "github.com/bmatsuo/hexgrid/point"
+
     "fmt"
     "math"
     //"log"
@@ -31,7 +33,7 @@ type Value interface{}
 //  For each coordinate in a Grid there is one unique HexTile.
 type Tile struct {
     Coords Coords
-    Pos    Point
+    Pos    point.Point
     Value  Value
 }
 type TileInitializer    func (Coords) Value
