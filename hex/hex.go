@@ -134,7 +134,7 @@ func (hex *HexPoints) Points() []point.Point {
 	copy(points, hex[:])
 	return points
 }
-func HexEdgeDirection(k, ell int) Direction {
+func EdgeDirection(k, ell int) Direction {
 	if k > ell {
 		var tmp = k
 		k = ell

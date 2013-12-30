@@ -378,7 +378,7 @@ func (h *Grid) genEdges(defaultValue Value) {
 			for k := 0; k < 6; k++ {
 				for ell := 0; ell < 6; ell++ { // BEGIN (k,ell) EDGE ANALYSIS
 					// Ensure an edge between k and ell exists.
-					var edgeDir = hex.HexEdgeDirection(k, ell)
+					var edgeDir = hex.EdgeDirection(k, ell)
 					if edgeDir != hex.NilDirection && h.edges[i][j][k][ell] == nil {
 						var (
 							coords = hexcoords.Edge{c.U, c.V, k, ell}
